@@ -49,20 +49,8 @@ function LoginFormContent() {
       // 2. Set Cookie for Next.js Middleware route protection
       setAuthCookie(data.session.access_token, data.session.expires_in);
 
-      // 3. Fetch user profile from Supabase
-      try {
-        const { data: profileData } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', data.user.id)
-          .maybeSingle();
-
-        if (profileData) {
-          await EstateStore.updateChamberProfile(profileData);
-        }
-      } catch (profErr) {
-        console.warn('Profile fetch note:', profErr);
-      }
+      // 3. Initialize user-scoped EstateStore and fetch manager data from Supabase
+      await EstateStore.init(data.user.id);
 
       // 4. Redirect
       router.push(redirectPath);

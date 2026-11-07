@@ -20,13 +20,45 @@ import {
 } from './initialData';
 import { supabase, isSupabaseConfigured, uploadReceiptToStorage, uploadLogoToStorage } from './supabase';
 
-const STORAGE_KEY_PREFIX = 'estate_pwa_';
+const LEGACY_KEY_PREFIX = 'estate_pwa_';
+let currentUserId: string | null = null;
+let localStorageKey: string = 'estate_store_guest';
+
+function purgeLegacyStorageKeys(): void {
+  if (typeof window === 'undefined') return;
+  try {
+    const keysToRemove: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith(LEGACY_KEY_PREFIX)) {
+        keysToRemove.push(k);
+      }
+    }
+    keysToRemove.forEach((k) => localStorage.removeItem(k));
+  } catch (e) {
+    console.warn('Error purging legacy storage keys:', e);
+  }
+}
+
+function getScopedBucket(): Record<string, any> {
+  if (typeof window === 'undefined') return {};
+  try {
+    const raw = localStorage.getItem(localStorageKey);
+    return raw ? JSON.parse(raw) : {};
+  } catch (e) {
+    console.error('Error reading from localStorage', e);
+    return {};
+  }
+}
 
 function getStorage<T>(key: string, fallback: T): T {
   if (typeof window === 'undefined') return fallback;
   try {
-    const item = localStorage.getItem(STORAGE_KEY_PREFIX + key);
-    return item ? JSON.parse(item) : fallback;
+    const bucket = getScopedBucket();
+    if (bucket && key in bucket && bucket[key] !== undefined) {
+      return bucket[key] as T;
+    }
+    return fallback;
   } catch (e) {
     console.error('Error reading from localStorage', e);
     return fallback;
@@ -36,7 +68,9 @@ function getStorage<T>(key: string, fallback: T): T {
 function setStorage<T>(key: string, value: T): void {
   if (typeof window === 'undefined') return;
   try {
-    localStorage.setItem(STORAGE_KEY_PREFIX + key, JSON.stringify(value));
+    const bucket = getScopedBucket();
+    bucket[key] = value;
+    localStorage.setItem(localStorageKey, JSON.stringify(bucket));
   } catch (e) {
     console.error('Error writing to localStorage', e);
   }
@@ -71,81 +105,40 @@ async function syncWithSupabase() {
   hasInitializedCloudSync = true;
 
   try {
-    // 1. Fetch Balances View
-    const { data: cloudBalances } = await supabase.from('property_balances').select('*');
-    if (cloudBalances && cloudBalances.length > 0) {
-      setStorage('cloud_balances', cloudBalances);
+    purgeLegacyStorageKeys();
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user?.id) {
+      await EstateStore.init(user.id);
+    } else {
+      await EstateStore.init();
     }
 
-    // 2. Fetch Landlords
-    const { data: cloudLandlords } = await supabase.from('landlords').select('*');
-    if (cloudLandlords && cloudLandlords.length > 0) {
-      setStorage('landlords', cloudLandlords);
-    }
-
-    // 3. Fetch Properties
-    const { data: cloudProperties } = await supabase.from('properties').select('*');
-    if (cloudProperties && cloudProperties.length > 0) {
-      setStorage('properties', cloudProperties);
-    }
-
-    // 4. Fetch Units
-    const { data: cloudUnits } = await supabase.from('units').select('*');
-    if (cloudUnits && cloudUnits.length > 0) {
-      setStorage('units', cloudUnits);
-    }
-
-    // 5. Fetch Invoices
-    const { data: cloudInvoices } = await supabase.from('invoices').select('*');
-    if (cloudInvoices && cloudInvoices.length > 0) {
-      setStorage('invoices', cloudInvoices);
-    }
-
-    // 6. Fetch Transactions
-    const { data: cloudTransactions } = await supabase
-      .from('transactions')
-      .select('*')
-      .order('created_at', { ascending: false });
-    if (cloudTransactions && cloudTransactions.length > 0) {
-      setStorage('transactions', cloudTransactions);
-    }
-
-    // 7. Fetch Active Manager Profile / Chambers Letterhead
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data: userProfile } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .maybeSingle();
-
-        if (userProfile) {
-          setStorage('chamber_profile', userProfile);
-        }
-      } else {
-        const { data: cloudProfiles } = await supabase.from('profiles').select('*').limit(1);
-        if (cloudProfiles && cloudProfiles.length > 0) {
-          setStorage('chamber_profile', cloudProfiles[0]);
-        }
+    // Listen for auth state transitions (login/logout/switch account)
+    supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_OUT') {
+        EstateStore.resetState();
+      } else if (session?.user?.id && session.user.id !== currentUserId) {
+        await EstateStore.init(session.user.id);
       }
-    } catch (e) {
-      console.warn('Profiles table sync note:', e);
-    }
+    });
 
-    notifySubscribers();
-
-    // 8. Subscribe to Supabase Realtime changes
+    // Subscribe to Supabase Realtime changes scoped to active manager
     supabase
       .channel('public_estate_changes')
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'profiles' },
         async () => {
+          if (!currentUserId) return;
           try {
-            const { data } = await supabase.from('profiles').select('*').limit(1);
-            if (data && data.length > 0) {
-              setStorage('chamber_profile', data[0]);
+            const { data } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', currentUserId)
+              .maybeSingle();
+            if (data) {
+              setStorage('chamber_profile', data);
               notifySubscribers();
             }
           } catch (e) {
@@ -157,25 +150,27 @@ async function syncWithSupabase() {
         'postgres_changes',
         { event: '*', schema: 'public', table: 'invoices' },
         async () => {
-          const { data } = await supabase.from('invoices').select('*');
-          if (data && data.length > 0) {
-            setStorage('invoices', data);
-            notifySubscribers();
-          }
+          if (!currentUserId) return;
+          const { data } = await supabase
+            .from('invoices')
+            .select('*')
+            .eq('manager_id', currentUserId);
+          setStorage('invoices', data || []);
+          notifySubscribers();
         }
       )
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'transactions' },
         async () => {
+          if (!currentUserId) return;
           const { data } = await supabase
             .from('transactions')
             .select('*')
+            .eq('manager_id', currentUserId)
             .order('created_at', { ascending: false });
-          if (data && data.length > 0) {
-            setStorage('transactions', data);
-            notifySubscribers();
-          }
+          setStorage('transactions', data || []);
+          notifySubscribers();
         }
       )
       .subscribe();
@@ -192,6 +187,107 @@ if (typeof window !== 'undefined') {
 }
 
 export class EstateStore {
+  // 0. Multi-Tenant Initialization & User-Scoped Storage
+  static async init(userId?: string): Promise<void> {
+    purgeLegacyStorageKeys();
+
+    let resolvedUserId = userId || null;
+    if (!resolvedUserId && supabase) {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        resolvedUserId = user?.id || null;
+      } catch {
+        resolvedUserId = null;
+      }
+    }
+
+    currentUserId = resolvedUserId;
+    localStorageKey = resolvedUserId ? `estate_store_${resolvedUserId}` : 'estate_store_guest';
+
+    if (resolvedUserId) {
+      await this.fetchFromSupabase(resolvedUserId);
+    } else {
+      notifySubscribers();
+    }
+  }
+
+  static async fetchFromSupabase(userId: string): Promise<void> {
+    if (!supabase || !userId) return;
+
+    currentUserId = userId;
+    localStorageKey = `estate_store_${userId}`;
+
+    try {
+      // 1. Landlords filtered by manager_id
+      const { data: cloudLandlords } = await supabase
+        .from('landlords')
+        .select('*')
+        .eq('manager_id', userId);
+      setStorage('landlords', cloudLandlords || []);
+
+      // 2. Properties filtered by manager_id
+      const { data: cloudProperties } = await supabase
+        .from('properties')
+        .select('*')
+        .eq('manager_id', userId);
+      setStorage('properties', cloudProperties || []);
+
+      // 3. Units filtered by manager_id
+      const { data: cloudUnits } = await supabase
+        .from('units')
+        .select('*')
+        .eq('manager_id', userId);
+      setStorage('units', cloudUnits || []);
+
+      // 4. Invoices filtered by manager_id
+      const { data: cloudInvoices } = await supabase
+        .from('invoices')
+        .select('*')
+        .eq('manager_id', userId);
+      setStorage('invoices', cloudInvoices || []);
+
+      // 5. Transactions filtered by manager_id
+      const { data: cloudTransactions } = await supabase
+        .from('transactions')
+        .select('*')
+        .eq('manager_id', userId)
+        .order('created_at', { ascending: false });
+      setStorage('transactions', cloudTransactions || []);
+
+      // 6. Balances View scoped to this manager's properties
+      const propIds = (cloudProperties || []).map((p: any) => p.id);
+      if (propIds.length > 0) {
+        const { data: cloudBalances } = await supabase
+          .from('property_balances')
+          .select('*')
+          .in('property_id', propIds);
+        setStorage('cloud_balances', cloudBalances || []);
+      } else {
+        setStorage('cloud_balances', []);
+      }
+
+      // 7. Manager Profile
+      const { data: userProfile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .maybeSingle();
+
+      if (userProfile) {
+        setStorage('chamber_profile', userProfile);
+      } else {
+        setStorage('chamber_profile', {
+          ...INITIAL_CHAMBER_PROFILE,
+          id: userId,
+        });
+      }
+
+      notifySubscribers();
+    } catch (err) {
+      console.warn('Error fetching user-scoped data from Supabase:', err);
+    }
+  }
+
   // 1. Landlords
   static getLandlords(): Landlord[] {
     return getStorage<Landlord[]>('landlords', INITIAL_LANDLORDS);
@@ -202,8 +298,19 @@ export class EstateStore {
   }
 
   static async createLandlord(landlord: Omit<Landlord, 'id' | 'created_at'>): Promise<Landlord> {
+    let managerId: string | null = landlord.manager_id || currentUserId || null;
+    if (!managerId && supabase) {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        managerId = user?.id || null;
+      } catch (err) {
+        console.warn('Could not retrieve user for landlord manager_id:', err);
+      }
+    }
+
     const newLandlord: Landlord = {
       ...landlord,
+      manager_id: managerId,
       id: crypto.randomUUID(),
       created_at: new Date().toISOString(),
     };
@@ -220,6 +327,9 @@ export class EstateStore {
           account_name: newLandlord.account_name || newLandlord.name,
           default_mgt_rate: Number(newLandlord.default_mgt_rate) || 10.0,
         };
+        if (managerId) {
+          payload.manager_id = managerId;
+        }
 
         const { error } = await supabase.from('landlords').insert(payload);
         if (error) {
@@ -863,12 +973,21 @@ export class EstateStore {
       cloudReceiptUrl = await uploadReceiptToStorage(data.receipt_url, 'artisans');
     }
 
+    let managerId: string | null = currentUserId || null;
+    if (!managerId && supabase) {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        managerId = user?.id || null;
+      } catch {}
+    }
+
     const transactions = getStorage<Transaction[]>('transactions', INITIAL_TRANSACTIONS);
     const nowIso = new Date().toISOString();
 
     const newTx: Transaction = {
       id: crypto.randomUUID(),
       created_at: nowIso,
+      manager_id: managerId,
       property_id: data.property_id,
       unit_id: data.unit_id || null,
       invoice_id: null,
@@ -879,7 +998,7 @@ export class EstateStore {
       description: data.description,
       reference_note: data.artisan_name ? `Artisan / Vendor: ${data.artisan_name}` : null,
       receipt_url: cloudReceiptUrl,
-      recorded_by: data.recorded_by || 'Barr. T. A. Babatunde',
+      recorded_by: data.recorded_by || 'Property Manager',
     };
 
     transactions.unshift(newTx);
@@ -889,7 +1008,7 @@ export class EstateStore {
     // Persist to Supabase
     if (supabase) {
       try {
-        await supabase.from('transactions').insert({
+        const payload: Record<string, any> = {
           id: newTx.id,
           property_id: newTx.property_id,
           unit_id: newTx.unit_id,
@@ -900,7 +1019,11 @@ export class EstateStore {
           description: newTx.description,
           reference_note: newTx.reference_note,
           receipt_url: newTx.receipt_url,
-        });
+        };
+        if (managerId) {
+          payload.manager_id = managerId;
+        }
+        await supabase.from('transactions').insert(payload);
       } catch (e) {
         console.warn('Supabase log expense note:', e);
       }
@@ -918,12 +1041,21 @@ export class EstateStore {
     account_number: string;
     recorded_by?: string;
   }): Promise<Transaction> {
+    let managerId: string | null = currentUserId || null;
+    if (!managerId && supabase) {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        managerId = user?.id || null;
+      } catch {}
+    }
+
     const transactions = getStorage<Transaction[]>('transactions', INITIAL_TRANSACTIONS);
     const nowIso = new Date().toISOString();
 
     const newTx: Transaction = {
       id: crypto.randomUUID(),
       created_at: nowIso,
+      manager_id: managerId,
       property_id: data.property_id,
       unit_id: null,
       invoice_id: null,
@@ -934,7 +1066,7 @@ export class EstateStore {
       description: `Remittance to Landlord (${data.bank_name}: ${data.account_number})`,
       reference_note: data.reference_note,
       receipt_url: null,
-      recorded_by: data.recorded_by || 'Barr. T. A. Babatunde',
+      recorded_by: data.recorded_by || 'Property Manager',
     };
 
     transactions.unshift(newTx);
@@ -944,7 +1076,7 @@ export class EstateStore {
     // Persist to Supabase
     if (supabase) {
       try {
-        await supabase.from('transactions').insert({
+        const payload: Record<string, any> = {
           id: newTx.id,
           property_id: newTx.property_id,
           unit_id: null,
@@ -954,7 +1086,11 @@ export class EstateStore {
           amount: newTx.amount,
           description: newTx.description,
           reference_note: newTx.reference_note,
-        });
+        };
+        if (managerId) {
+          payload.manager_id = managerId;
+        }
+        await supabase.from('transactions').insert(payload);
       } catch (e) {
         console.warn('Supabase record remittance note:', e);
       }
@@ -1104,16 +1240,46 @@ export class EstateStore {
     await syncWithSupabase();
   }
 
-  // Reset to initial demo state
-  static resetToDefault(): void {
-    if (typeof window === 'undefined') return;
-    localStorage.removeItem(STORAGE_KEY_PREFIX + 'landlords');
-    localStorage.removeItem(STORAGE_KEY_PREFIX + 'properties');
-    localStorage.removeItem(STORAGE_KEY_PREFIX + 'units');
-    localStorage.removeItem(STORAGE_KEY_PREFIX + 'invoices');
-    localStorage.removeItem(STORAGE_KEY_PREFIX + 'transactions');
-    localStorage.removeItem(STORAGE_KEY_PREFIX + 'cloud_balances');
-    localStorage.removeItem(STORAGE_KEY_PREFIX + 'chamber_profile');
+  // Reset all properties, units, invoices, and ledger pools to empty values
+  static resetState(): void {
+    if (typeof window !== 'undefined') {
+      try {
+        if (currentUserId) {
+          localStorage.removeItem(`estate_store_${currentUserId}`);
+        }
+        localStorage.removeItem(localStorageKey);
+        localStorage.removeItem('estate_store_guest');
+        purgeLegacyStorageKeys();
+
+        const keysToRemove: string[] = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i);
+          if (k && (k.startsWith('estate_store_') || k.startsWith(LEGACY_KEY_PREFIX))) {
+            keysToRemove.push(k);
+          }
+        }
+        keysToRemove.forEach((k) => localStorage.removeItem(k));
+      } catch (e) {
+        console.warn('Error clearing localStorage on resetState:', e);
+      }
+    }
+
+    currentUserId = null;
+    localStorageKey = 'estate_store_guest';
+
+    setStorage('landlords', []);
+    setStorage('properties', []);
+    setStorage('units', []);
+    setStorage('invoices', []);
+    setStorage('transactions', []);
+    setStorage('cloud_balances', []);
+    setStorage('chamber_profile', INITIAL_CHAMBER_PROFILE);
+
     notifySubscribers();
+  }
+
+  // Alias for backwards compatibility
+  static resetToDefault(): void {
+    this.resetState();
   }
 }

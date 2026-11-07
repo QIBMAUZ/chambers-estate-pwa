@@ -18,6 +18,7 @@ export type FundingSource =
 export interface Landlord {
   id: string;
   created_at: string;
+  manager_id?: string | null;
   name: string;
   email: string | null;
   phone: string | null;
@@ -88,6 +89,7 @@ export interface Invoice {
 export interface Transaction {
   id: string;
   created_at: string;
+  manager_id?: string | null;
   property_id: string;
   unit_id: string | null;
   invoice_id: string | null;

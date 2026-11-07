@@ -56,13 +56,26 @@ export function Navigation({ selectedPropertyId, onPropertyChange }: NavigationP
 
   const handleReset = () => {
     if (confirm('Clear local application cache and refresh data?')) {
-      EstateStore.resetToDefault();
-      window.location.reload();
+      EstateStore.resetState();
+      EstateStore.refreshFromCloud().finally(() => {
+        window.location.reload();
+      });
     }
   };
 
   const handleSignOut = async () => {
     if (confirm('Sign out from management session?')) {
+      EstateStore.resetState();
+      if (typeof window !== 'undefined') {
+        const keysToClear: string[] = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i);
+          if (k && (k.startsWith('estate_store_') || k.startsWith('estate_pwa_'))) {
+            keysToClear.push(k);
+          }
+        }
+        keysToClear.forEach((k) => localStorage.removeItem(k));
+      }
       await supabase.auth.signOut().catch(() => {});
       clearAuthCookie();
       window.location.href = '/auth/login';

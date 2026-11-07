@@ -143,7 +143,8 @@ export default function RegisterPage() {
         console.warn('Profiles upsert note:', dbErr);
       }
 
-      // 5. Update local store state
+      // 5. Initialize user-scoped store and save profile
+      await EstateStore.init(userId);
       await EstateStore.updateChamberProfile(newProfile);
 
       // 6. Redirect to dashboard
