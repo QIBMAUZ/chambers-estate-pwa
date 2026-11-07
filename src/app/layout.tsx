@@ -8,14 +8,14 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'EstateAdvocate | Nigerian Legal Property & Rent Management PWA',
+  title: 'Estate Management | Property & Tenancy Portal',
   description:
-    'Production Progressive Web Application for Nigerian Legal Property Managers. Automates rent invoicing, proof-of-payment verification, 10% legal fee calculation, artisan maintenance tracking, and 1-click landlord statement generation.',
+    'Commercial Property & Tenancy Management System. Automates rent invoicing, proof-of-payment verification, management fee calculations, maintenance tracking, and landlord statement generation.',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'EstateAdvocate',
+    title: 'Estate Management',
   },
   icons: {
     icon: '/icon-192.png',

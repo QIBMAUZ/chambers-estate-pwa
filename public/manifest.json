@@ -1,7 +1,7 @@
 {
-  "name": "EstateAdvocate | Nigerian Legal Property & Rent PWA",
-  "short_name": "EstateAdvocate",
-  "description": "Production Legal Property & Rent Management System for Nigerian Property Solicitors & Managers",
+  "name": "Estate Management | Property & Tenancy Portal",
+  "short_name": "Estate Management",
+  "description": "Commercial Property & Tenancy Management System",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#064e3b",

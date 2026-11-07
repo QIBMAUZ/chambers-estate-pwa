@@ -161,13 +161,13 @@ export default function RegisterPage() {
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-center py-10 px-4 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-2xl text-center space-y-2">
         <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-700 text-emerald-950 shadow-xl mb-1">
-          <Scale className="w-8 h-8 stroke-[2.2]" />
+          <Building2 className="w-8 h-8 stroke-[2.2]" />
         </div>
         <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white uppercase">
-          ESTATE<span className="text-amber-400">ADVOCATE</span>
+          ESTATE<span className="text-amber-400">MANAGEMENT</span>
         </h1>
         <p className="text-xs sm:text-sm text-slate-400 max-w-md mx-auto">
-          Legal Property &amp; Rent Trust Management Progressive Web Application for Nigerian Solicitors.
+          Commercial Property &amp; Tenancy Management Progressive Web Application.
         </p>
       </div>
 
@@ -176,10 +176,10 @@ export default function RegisterPage() {
           <div className="border-b border-slate-800 pb-4">
             <h2 className="text-lg font-bold text-white flex items-center gap-2">
               <Building2 className="w-5 h-5 text-emerald-400" />
-              Manager &amp; Law Chambers Registration
+              Register Property Management Account
             </h2>
             <p className="text-xs text-slate-400 mt-1">
-              Set up your legal practice profile, collection escrow account, and automatic 10% fee calculation rules.
+              Set up your company profile, collection account, and fee calculation rules.
             </p>
           </div>
 
@@ -195,34 +195,34 @@ export default function RegisterPage() {
             <div className="space-y-4">
               <h3 className="font-extrabold uppercase text-[11px] tracking-wider text-emerald-400 flex items-center gap-1.5">
                 <User className="w-4 h-4" />
-                1. Solicitor &amp; Chambers Identification
+                1. Manager &amp; Company Identification
               </h3>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-slate-400 font-semibold mb-1">
-                    Solicitor / Manager Full Name <span className="text-rose-500">*</span>
+                    Full Name / Lead Manager <span className="text-rose-500">*</span>
                   </label>
                   <input
                     type="text"
                     required
                     value={solicitorName}
                     onChange={(e) => setSolicitorName(e.target.value)}
-                    placeholder="e.g. Barr. T. A. Babatunde, LL.B, B.L"
+                    placeholder="e.g. T. A. Babatunde"
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-200 focus:ring-2 focus:ring-emerald-500 font-medium"
                   />
                 </div>
 
                 <div>
                   <label className="block text-slate-400 font-semibold mb-1">
-                    Chambers / Firm Legal Title <span className="text-rose-500">*</span>
+                    Company / Agency / Firm Name <span className="text-rose-500">*</span>
                   </label>
                   <input
                     type="text"
                     required
                     value={firmName}
                     onChange={(e) => setFirmName(e.target.value)}
-                    placeholder="e.g. BARR. T. A. BABATUNDE & ASSOCIATES"
+                    placeholder="e.g. BABATUNDE PROPERTY CONSULTANTS"
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-200 focus:ring-2 focus:ring-emerald-500 uppercase font-bold"
                   />
                 </div>
@@ -231,13 +231,13 @@ export default function RegisterPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-slate-400 font-semibold mb-1">
-                    Supreme Court Enrolment No (Optional)
+                    Professional Accreditation / Enrolment No (Optional)
                   </label>
                   <input
                     type="text"
                     value={enrollmentNo}
                     onChange={(e) => setEnrollmentNo(e.target.value)}
-                    placeholder="e.g. SCN/2004/0981"
+                    placeholder="e.g. SCN/2004/0981 or REG-2026-09"
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-200 focus:ring-2 focus:ring-emerald-500 font-mono"
                   />
                 </div>
@@ -259,7 +259,7 @@ export default function RegisterPage() {
 
               <div>
                 <label className="block text-slate-400 font-semibold mb-1">
-                  Chambers Physical Address &amp; State <span className="text-rose-500">*</span>
+                  Office Physical Address &amp; State <span className="text-rose-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -276,7 +276,7 @@ export default function RegisterPage() {
             <div className="space-y-4 pt-4 border-t border-slate-800">
               <h3 className="font-extrabold uppercase text-[11px] tracking-wider text-amber-400 flex items-center gap-1.5">
                 <CreditCard className="w-4 h-4" />
-                2. Chambers Dedicated Rent Collection Escrow Bank Details
+                2. Dedicated Rent Collection Bank Details
               </h3>
               <p className="text-[11px] text-slate-500">
                 These banking instructions are presented to tenants on their magic payment portal links.
@@ -324,7 +324,7 @@ export default function RegisterPage() {
                     required
                     value={accountName}
                     onChange={(e) => setAccountName(e.target.value)}
-                    placeholder="e.g. Babatunde & Co Client Escrow"
+                    placeholder="e.g. Babatunde Properties Client Account"
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-200 focus:ring-2 focus:ring-emerald-500 font-semibold"
                   />
                 </div>
@@ -348,7 +348,7 @@ export default function RegisterPage() {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="solicitor@chambers.ng"
+                    placeholder="manager@example.com"
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-200 focus:ring-2 focus:ring-emerald-500"
                   />
                 </div>
@@ -392,11 +392,11 @@ export default function RegisterPage() {
                 {isLoading ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin text-amber-300" />
-                    <span>Creating Chambers Manager Account...</span>
+                    <span>Creating Manager Account...</span>
                   </>
                 ) : (
                   <>
-                    <span>Complete Registration &amp; Open Chambers Dashboard</span>
+                    <span>Create Account</span>
                     <ArrowRight className="w-4 h-4 text-amber-300" />
                   </>
                 )}
@@ -405,12 +405,12 @@ export default function RegisterPage() {
           </form>
 
           <div className="pt-4 border-t border-slate-800 text-center text-xs text-slate-400">
-            <span>Already registered your chambers? </span>
+            <span>Already have an account? </span>
             <Link
               href="/auth/login"
               className="text-amber-400 font-bold hover:underline inline-flex items-center gap-1"
             >
-              Sign In to Chambers
+              Sign In to Manager Portal
             </Link>
           </div>
         </div>

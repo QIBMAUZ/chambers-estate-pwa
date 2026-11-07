@@ -12,11 +12,9 @@ import {
   ArrowRight,
   Loader2,
   AlertCircle,
-  Sparkles,
 } from 'lucide-react';
 import { supabase, setAuthCookie } from '@/lib/supabase';
 import { EstateStore } from '@/lib/store';
-import { INITIAL_CHAMBER_PROFILE } from '@/lib/initialData';
 
 function LoginFormContent() {
   const router = useRouter();
@@ -26,7 +24,6 @@ function LoginFormContent() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isDemoLoading, setIsDemoLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -78,23 +75,6 @@ function LoginFormContent() {
     }
   };
 
-  // One-click Demo Chambers Access for reviewers & offline operation
-  const handleDemoAccess = async () => {
-    setIsDemoLoading(true);
-    setErrorMessage(null);
-    try {
-      const demoToken = 'demo-chambers-session-token-2026';
-      setAuthCookie(demoToken, 3600 * 24 * 7);
-      await EstateStore.updateChamberProfile(INITIAL_CHAMBER_PROFILE);
-      router.push(redirectPath);
-      router.refresh();
-    } catch (err: any) {
-      setErrorMessage('Could not initialize demo session.');
-    } finally {
-      setIsDemoLoading(false);
-    }
-  };
-
   return (
     <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-10 shadow-2xl space-y-6">
       <div className="border-b border-slate-800 pb-4">
@@ -103,7 +83,7 @@ function LoginFormContent() {
           Manager Sign In
         </h2>
         <p className="text-xs text-slate-400 mt-1">
-          Access your legal rent ledger, artisan approvals, and automated 10% fee audit pool.
+          Access your property ledgers, maintenance approvals, and automated fee records.
         </p>
       </div>
 
@@ -117,7 +97,7 @@ function LoginFormContent() {
       <form onSubmit={handleLogin} className="space-y-4 text-xs">
         <div>
           <label className="block text-slate-400 font-semibold mb-1">
-            Chambers Email Address
+            Email Address
           </label>
           <div className="relative">
             <Mail className="w-4 h-4 text-slate-500 absolute left-3 top-3.5 pointer-events-none" />
@@ -126,7 +106,7 @@ function LoginFormContent() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="solicitor@babatundelaw.ng"
+              placeholder="manager@example.com"
               className="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 pl-10 pr-4 text-slate-200 focus:ring-2 focus:ring-emerald-500"
             />
           </div>
@@ -155,7 +135,7 @@ function LoginFormContent() {
         <div className="pt-2">
           <button
             type="submit"
-            disabled={isLoading || isDemoLoading}
+            disabled={isLoading}
             className="w-full py-3.5 px-6 rounded-2xl bg-emerald-700 hover:bg-emerald-600 active:scale-[0.99] text-white font-extrabold text-sm shadow-xl transition flex items-center justify-center gap-2 disabled:opacity-60"
           >
             {isLoading ? (
@@ -165,7 +145,7 @@ function LoginFormContent() {
               </>
             ) : (
               <>
-                <span>Sign In to Chambers Portal</span>
+                <span>Sign In to Manager Portal</span>
                 <ArrowRight className="w-4 h-4 text-amber-300" />
               </>
             )}
@@ -173,36 +153,14 @@ function LoginFormContent() {
         </div>
       </form>
 
-      {/* Demo Access Button */}
-      <div className="pt-2">
-        <button
-          type="button"
-          onClick={handleDemoAccess}
-          disabled={isLoading || isDemoLoading}
-          className="w-full py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-700/80 active:scale-[0.99] text-amber-400 border border-slate-700 font-bold text-xs shadow transition flex items-center justify-center gap-2"
-        >
-          {isDemoLoading ? (
-            <>
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              <span>Loading Demo Session...</span>
-            </>
-          ) : (
-            <>
-              <Sparkles className="w-4 h-4 text-amber-400" />
-              <span>Instant Demo Access (Barr. T. A. Babatunde)</span>
-            </>
-          )}
-        </button>
-      </div>
-
       <div className="pt-4 border-t border-slate-800 text-center text-xs text-slate-400 space-y-2">
         <div>
-          <span>New law firm or property manager? </span>
+          <span>New property manager or firm? </span>
           <Link
             href="/auth/register"
             className="text-amber-400 font-bold hover:underline"
           >
-            Register Your Chambers
+            Create an Account
           </Link>
         </div>
         <div>
@@ -223,13 +181,13 @@ export default function LoginPage() {
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-center py-10 px-4 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center space-y-2">
         <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-700 text-emerald-950 shadow-xl mb-1">
-          <Scale className="w-8 h-8 stroke-[2.2]" />
+          <Building2 className="w-8 h-8 stroke-[2.2]" />
         </div>
         <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white uppercase">
-          ESTATE<span className="text-amber-400">ADVOCATE</span>
+          ESTATE<span className="text-amber-400">MANAGEMENT</span>
         </h1>
         <p className="text-xs text-slate-400">
-          Chambers of Legal Property Managers &amp; Rent Trust Ledger
+          Commercial Property &amp; Tenancy Management System
         </p>
       </div>
 

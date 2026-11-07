@@ -84,10 +84,10 @@ export function PWAProvider({ children }: { children: React.ReactNode }) {
         <div className="bg-emerald-950 border-b border-emerald-800 text-emerald-100 px-4 py-2.5 text-xs flex items-center justify-between sticky top-0 z-40 shadow-sm">
           <div className="flex items-center gap-2.5">
             <div className="w-6 h-6 rounded bg-emerald-600 flex items-center justify-center text-white font-bold text-xs">
-              EA
+              EM
             </div>
             <span>
-              <strong>Install EstateAdvocate PWA</strong> for native camera capture & fast offline ledger access.
+              <strong>Install Estate Management PWA</strong> for native camera capture &amp; fast offline ledger access.
             </span>
           </div>
           <button

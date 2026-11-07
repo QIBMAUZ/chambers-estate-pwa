@@ -62,7 +62,7 @@ export function Navigation({ selectedPropertyId, onPropertyChange }: NavigationP
   };
 
   const handleSignOut = async () => {
-    if (confirm('Sign out from Chambers management session?')) {
+    if (confirm('Sign out from management session?')) {
       await supabase.auth.signOut().catch(() => {});
       clearAuthCookie();
       window.location.href = '/auth/login';
@@ -84,20 +84,20 @@ export function Navigation({ selectedPropertyId, onPropertyChange }: NavigationP
                   className="w-full h-full object-contain"
                 />
               ) : (
-                <Scale className="w-6 h-6 stroke-[2.2]" />
+                <Building2 className="w-6 h-6 stroke-[2.2]" />
               )}
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <span className="font-extrabold text-lg sm:text-xl tracking-tight text-white">
-                  ESTATE<span className="text-amber-400">ADVOCATE</span>
+                  ESTATE<span className="text-amber-400">MANAGEMENT</span>
                 </span>
                 <span className="hidden md:inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-800 text-emerald-200 border border-emerald-700">
-                  LEGAL PROPERTY PWA
+                  PROPERTY PORTAL
                 </span>
               </div>
               <p className="text-[11px] text-emerald-300 font-medium hidden sm:block truncate max-w-sm">
-                {mounted ? profile?.firm_name : 'Barr. T. A. Babatunde & Associates'} • 10% Legal Fee Ledger
+                {mounted && profile?.firm_name ? profile.firm_name : 'Estate Management'} • Property Ledgers &amp; Accounts
               </p>
             </div>
           </Link>
@@ -153,7 +153,7 @@ export function Navigation({ selectedPropertyId, onPropertyChange }: NavigationP
             {/* Manager Sign Out */}
             <button
               onClick={handleSignOut}
-              title="Sign out of Chambers"
+              title="Sign out of management portal"
               className="p-1.5 text-rose-300 hover:text-white hover:bg-rose-900/60 rounded-lg text-xs flex items-center gap-1 transition"
             >
               <LogOut className="w-3.5 h-3.5" />
