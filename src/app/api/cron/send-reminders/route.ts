@@ -6,11 +6,14 @@ import {
   generateDailyReminderNotice,
   buildWhatsAppShareUrl,
 } from '@/lib/utils';
+import { sendRenewalNoticeEmail } from '@/lib/mailer';
 
 interface DispatchedNotice {
   invoiceId: string;
   tenantName: string;
   tenantPhone: string | null;
+  tenantEmail: string | null;
+  emailDispatched: boolean;
   propertyTitle: string;
   unitName: string;
   tier: '9M' | '30D' | 'DAILY';
@@ -241,7 +244,39 @@ async function handleRemindersCron(request: NextRequest) {
         };
       }
 
-      // 5. Update Database Record in Supabase
+      // 5. Automated SMTP Email Dispatch via Zoho Mail (if tenant has valid email)
+      const tenantEmail = inv.unit?.tenant_email?.trim() || null;
+      let emailDispatched = false;
+
+      if (tenantEmail && tenantEmail.includes('@')) {
+        try {
+          const emailRes = await sendRenewalNoticeEmail({
+            to: tenantEmail,
+            tenantName: inv.tenant_name,
+            propertyName: propertyTitle,
+            unitName,
+            amountDue: noticeParams.totalDue,
+            rentDue: noticeParams.rentDue,
+            serviceChargeDue: noticeParams.serviceChargeDue,
+            cautionDue: noticeParams.cautionDue,
+            dueDate: inv.due_date,
+            daysRemaining: daysToDue,
+            tier: selectedTier,
+            magicLink: paymentLink,
+            firmName: profile.firm_name,
+            solicitorName: profile.solicitor_name,
+            accountDetails,
+          });
+          emailDispatched = !emailRes.skipped;
+        } catch (smtpError) {
+          console.error(
+            `SMTP dispatch error for invoice ${inv.id} (${tenantEmail}):`,
+            smtpError
+          );
+        }
+      }
+
+      // 6. Update Database Record in Supabase
       const { error: updateError } = await supabase
         .from('invoices')
         .update(updatePayload)
@@ -255,6 +290,8 @@ async function handleRemindersCron(request: NextRequest) {
           invoiceId: inv.id,
           tenantName: inv.tenant_name,
           tenantPhone: whatsAppPhone || null,
+          tenantEmail,
+          emailDispatched,
           propertyTitle,
           unitName,
           tier: selectedTier,
