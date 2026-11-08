@@ -535,6 +535,156 @@ export class EstateStore {
     return newUnit;
   }
 
+  static async updateUnit(
+    unitId: string,
+    updates: Partial<Unit> & {
+      name?: string;
+      tenant_name?: string | null;
+      service_charge?: number;
+    }
+  ): Promise<Unit | undefined> {
+    const units = getStorage<Unit[]>('units', INITIAL_UNITS);
+    const index = units.findIndex((u) => u.id === unitId);
+    if (index === -1) return undefined;
+
+    const existing = units[index];
+    const resolvedUnitName =
+      updates.unit_name !== undefined
+        ? updates.unit_name
+        : updates.name !== undefined
+        ? updates.name
+        : existing.unit_name;
+
+    const resolvedTenantName =
+      updates.current_tenant_name !== undefined
+        ? updates.current_tenant_name
+        : updates.tenant_name !== undefined
+        ? updates.tenant_name
+        : existing.current_tenant_name;
+
+    const resolvedServiceCharge =
+      updates.annual_service_charge !== undefined
+        ? Number(updates.annual_service_charge)
+        : updates.service_charge !== undefined
+        ? Number(updates.service_charge)
+        : existing.annual_service_charge;
+
+    const resolvedAnnualRent =
+      updates.annual_rent !== undefined
+        ? Number(updates.annual_rent)
+        : existing.annual_rent;
+
+    const resolvedCautionFee =
+      updates.caution_fee !== undefined
+        ? Number(updates.caution_fee)
+        : existing.caution_fee;
+
+    const resolvedPhone =
+      updates.tenant_phone !== undefined ? updates.tenant_phone : existing.tenant_phone;
+
+    const resolvedEmail =
+      updates.tenant_email !== undefined ? updates.tenant_email : existing.tenant_email;
+
+    const resolvedLeaseStart =
+      updates.lease_start_date !== undefined ? updates.lease_start_date : existing.lease_start_date;
+
+    const resolvedLeaseEnd =
+      updates.lease_end_date !== undefined ? updates.lease_end_date : existing.lease_end_date;
+
+    const resolvedIsOccupied =
+      updates.is_occupied !== undefined
+        ? updates.is_occupied
+        : Boolean(resolvedTenantName && resolvedTenantName.trim());
+
+    const updatedUnit: Unit = {
+      ...existing,
+      unit_name: resolvedUnitName.trim(),
+      current_tenant_name: resolvedTenantName ? resolvedTenantName.trim() : null,
+      tenant_phone: resolvedPhone ? resolvedPhone.trim() : null,
+      tenant_email: resolvedEmail ? resolvedEmail.trim() : null,
+      annual_rent: resolvedAnnualRent,
+      annual_service_charge: resolvedServiceCharge,
+      caution_fee: resolvedCautionFee,
+      lease_start_date: resolvedLeaseStart,
+      lease_end_date: resolvedLeaseEnd,
+      is_occupied: resolvedIsOccupied,
+    };
+
+    units[index] = updatedUnit;
+    setStorage('units', units);
+
+    // Sync active unpaid/draft invoices tied to this unit so Renewal Radar updates immediately
+    const invoices = getStorage<Invoice[]>('invoices', INITIAL_INVOICES);
+    let invoicesModified = false;
+    const unpaidInvoiceIdsToSync: Array<{ id: string; payload: Record<string, any> }> = [];
+
+    for (let i = 0; i < invoices.length; i++) {
+      const inv = invoices[i];
+      if (inv.unit_id === unitId && inv.status !== 'PAID') {
+        const invUpdate: Partial<Invoice> = {};
+        if (updatedUnit.current_tenant_name && inv.tenant_name !== updatedUnit.current_tenant_name) {
+          invUpdate.tenant_name = updatedUnit.current_tenant_name;
+        }
+        if (updatedUnit.lease_start_date && inv.period_start !== updatedUnit.lease_start_date) {
+          invUpdate.period_start = updatedUnit.lease_start_date;
+        }
+        if (updatedUnit.lease_end_date && inv.period_end !== updatedUnit.lease_end_date) {
+          invUpdate.period_end = updatedUnit.lease_end_date;
+          invUpdate.due_date = updatedUnit.lease_end_date;
+        }
+
+        if (Object.keys(invUpdate).length > 0) {
+          invoices[i] = { ...inv, ...invUpdate };
+          invoicesModified = true;
+          unpaidInvoiceIdsToSync.push({ id: inv.id, payload: invUpdate });
+        }
+      }
+    }
+
+    if (invoicesModified) {
+      setStorage('invoices', invoices);
+    }
+
+    notifySubscribers();
+
+    // Persist to Supabase
+    if (supabase) {
+      const dbUpdates: Record<string, any> = {
+        unit_name: updatedUnit.unit_name,
+        current_tenant_name: updatedUnit.current_tenant_name,
+        tenant_phone: updatedUnit.tenant_phone,
+        tenant_email: updatedUnit.tenant_email,
+        annual_rent: updatedUnit.annual_rent,
+        annual_service_charge: updatedUnit.annual_service_charge,
+        caution_fee: updatedUnit.caution_fee,
+        lease_start_date: updatedUnit.lease_start_date,
+        lease_end_date: updatedUnit.lease_end_date,
+        is_occupied: updatedUnit.is_occupied,
+      };
+
+      const { error } = await supabase
+        .from('units')
+        .update(dbUpdates)
+        .eq('id', unitId);
+
+      if (error) {
+        console.error('Supabase update unit error:', error);
+        throw new Error(error.message || 'Database error updating tenancy unit');
+      }
+
+      // Sync corresponding unpaid invoices in Supabase
+      for (const item of unpaidInvoiceIdsToSync) {
+        try {
+          await supabase.from('invoices').update(item.payload).eq('id', item.id);
+        } catch (invErr) {
+          console.warn('Could not sync invoice dates on unit update:', invErr);
+        }
+      }
+    }
+
+    return updatedUnit;
+  }
+
   // 4. Invoices
   static getInvoices(propertyId?: string): Invoice[] {
     const invoices = getStorage<Invoice[]>('invoices', INITIAL_INVOICES);

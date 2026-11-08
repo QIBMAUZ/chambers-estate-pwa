@@ -15,9 +15,11 @@ import {
   Check,
   AlertCircle,
   Loader2,
+  Pencil,
 } from 'lucide-react';
 import { Navigation } from '@/components/Navigation';
 import { PWAProvider } from '@/components/PWAProvider';
+import { EditUnitModal } from '@/components/EditUnitModal';
 import { EstateStore, subscribeToStore } from '@/lib/store';
 import { supabase } from '@/lib/supabase';
 import { formatNaira, formatDate } from '@/lib/utils';
@@ -46,6 +48,8 @@ export default function PropertiesPage() {
 
   // Add Property modal
   const [isAddPropertyOpen, setIsAddPropertyOpen] = useState(false);
+  const [editingUnit, setEditingUnit] = useState<Unit | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isPropSubmitting, setIsPropSubmitting] = useState(false);
   const [propErrorMessage, setPropErrorMessage] = useState<string | null>(null);
   const [propTitle, setPropTitle] = useState('');
@@ -356,7 +360,7 @@ export default function PropertiesPage() {
                       key={u.id}
                       className="bg-slate-50 dark:bg-slate-800/40 p-4 rounded-xl border border-slate-200 dark:border-slate-700/80 space-y-3 hover:border-emerald-500 transition"
                     >
-                      <div className="flex items-start justify-between">
+                      <div className="flex items-start justify-between gap-2">
                         <div>
                           <h4 className="font-bold text-sm text-slate-900 dark:text-slate-100">
                             {u.unit_name}
@@ -366,9 +370,20 @@ export default function PropertiesPage() {
                             {u.is_occupied ? 'Occupied Tenancy' : 'Vacant Unit'}
                           </span>
                         </div>
-                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300">
-                          {formatNaira(u.annual_rent)}/yr
-                        </span>
+                        <div className="flex items-center gap-1.5">
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300">
+                            {formatNaira(u.annual_rent)}/yr
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setEditingUnit(u)}
+                            title="Edit Tenancy Unit"
+                            className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 hover:text-emerald-700 dark:hover:text-emerald-300 hover:border-emerald-400 transition shadow-2xs"
+                          >
+                            <Pencil className="w-3 h-3" />
+                            <span>Edit</span>
+                          </button>
+                        </div>
                       </div>
 
                       {/* Tenant Profile */}
@@ -381,6 +396,12 @@ export default function PropertiesPage() {
                           <div className="text-[11px] text-slate-500 flex items-center gap-1 font-mono">
                             <Phone className="w-3 h-3 text-slate-400" />
                             <span>{u.tenant_phone}</span>
+                          </div>
+                        )}
+                        {u.tenant_email && (
+                          <div className="text-[11px] text-slate-500 flex items-center gap-1 truncate">
+                            <Mail className="w-3 h-3 text-slate-400 shrink-0" />
+                            <span className="truncate">{u.tenant_email}</span>
                           </div>
                         )}
                         <div className="text-[11px] text-slate-500 flex items-center gap-1">
@@ -519,6 +540,22 @@ export default function PropertiesPage() {
                       className="w-full text-xs sm:text-sm bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-2.5"
                     />
                   </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold mb-1">
+                    Tenant Email Address{' '}
+                    <span className="text-[11px] font-normal text-emerald-600 dark:text-emerald-400">
+                      (For automated email reminders)
+                    </span>
+                  </label>
+                  <input
+                    type="email"
+                    value={tenantEmail}
+                    onChange={(e) => setTenantEmail(e.target.value)}
+                    placeholder="tenant@example.com"
+                    className="w-full text-xs sm:text-sm bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-2.5"
+                  />
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -777,6 +814,28 @@ export default function PropertiesPage() {
                 </div>
               </form>
             </div>
+          </div>
+        )}
+
+        {/* Edit Unit Modal */}
+        <EditUnitModal
+          unit={editingUnit}
+          isOpen={Boolean(editingUnit)}
+          onClose={() => setEditingUnit(null)}
+          onSuccess={(updated) => {
+            refreshData();
+            setToastMessage(`Unit "${updated.unit_name}" updated successfully!`);
+            setTimeout(() => {
+              setToastMessage(null);
+            }, 4000);
+          }}
+        />
+
+        {/* Success Toast */}
+        {toastMessage && (
+          <div className="fixed bottom-5 right-5 z-50 bg-emerald-900 border border-emerald-700 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 text-xs font-bold animate-in fade-in slide-in-from-bottom-4">
+            <Check className="w-4 h-4 text-amber-400 shrink-0" />
+            <span>{toastMessage}</span>
           </div>
         )}
       </div>
