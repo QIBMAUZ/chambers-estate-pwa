@@ -85,56 +85,56 @@ export default function DashboardPage() {
 
   return (
     <PWAProvider>
-      <div className="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-slate-100 pb-20 md:pb-12">
+      <div className="min-h-screen bg-slate-50/70 dark:bg-slate-950 text-slate-900 dark:text-slate-100 pb-20 md:pb-12">
         <Navigation
           selectedPropertyId={selectedPropertyId}
           onPropertyChange={setSelectedPropertyId}
         />
 
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-          {/* Welcome Legal Banner */}
-          <div className="bg-gradient-to-r from-emerald-950 via-emerald-900 to-emerald-950 text-white rounded-2xl p-5 sm:p-6 shadow-xl border border-emerald-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
-                  Nigerian Legal Property Management System
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+          {/* Executive Hero Banner */}
+          <div className="bg-gradient-to-br from-slate-900 via-slate-900 to-emerald-950 text-white rounded-2xl p-6 sm:p-8 shadow-lg border border-slate-800/80 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+            <div className="space-y-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                  Commercial &amp; Residential Portfolio
                 </span>
-                <span className="text-xs text-emerald-300">Lagos State Tenancy Law Compliant</span>
+                <span className="text-xs text-slate-400">Automated Multi-Pool Trust Accounting</span>
               </div>
-              <h1 className="text-xl sm:text-2xl font-black tracking-tight mt-2">
-                Estate Legal Trust &amp; Rent Accounting
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+                Property &amp; Tenancy Financial Overview
               </h1>
-              <p className="text-xs sm:text-sm text-emerald-200 mt-1 max-w-2xl">
-                Automated 10% solicitor commission deduction on rent collections, strict multi-pool fund separation (Landlord Net, Service Charge &amp; Caution Escrow), and instant 1-click financial statements.
+              <p className="text-xs sm:text-sm text-slate-300 max-w-2xl leading-relaxed">
+                Automated management commission calculation on rent collections, strict multi-pool fund separation (Landlord Net, Service Charge &amp; Caution Escrow), and instant 1-click financial statements.
               </p>
             </div>
 
-            {/* Quick Action Button Pill */}
-            <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+            {/* Quick Action Buttons */}
+            <div className="flex flex-wrap items-center gap-2.5 w-full lg:w-auto">
               <button
                 onClick={() => setIsCreateInvoiceOpen(true)}
-                className="flex-1 md:flex-initial inline-flex items-center justify-center gap-1.5 bg-amber-500 hover:bg-amber-400 active:scale-95 text-emerald-950 font-bold px-4 py-2.5 rounded-xl shadow-md transition text-xs sm:text-sm"
+                className="flex-1 lg:flex-initial inline-flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-4 py-2.5 rounded-xl shadow-sm transition-all text-xs sm:text-sm"
               >
                 <Receipt className="w-4 h-4" />
                 <span>+ Rent Demand</span>
               </button>
               <button
                 onClick={() => setIsLogExpenseOpen(true)}
-                className="flex-1 md:flex-initial inline-flex items-center justify-center gap-1.5 bg-emerald-800 hover:bg-emerald-700 active:scale-95 text-white font-semibold px-4 py-2.5 rounded-xl border border-emerald-700 shadow transition text-xs sm:text-sm"
+                className="flex-1 lg:flex-initial inline-flex items-center justify-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-100 font-medium px-4 py-2.5 rounded-xl border border-slate-700 shadow-2xs transition-all text-xs sm:text-sm"
               >
-                <Wrench className="w-4 h-4" />
+                <Wrench className="w-4 h-4 text-slate-300" />
                 <span>+ Artisan Expense</span>
               </button>
               <button
                 onClick={() => setIsRecordRemittanceOpen(true)}
-                className="flex-1 md:flex-initial inline-flex items-center justify-center gap-1.5 bg-emerald-800 hover:bg-emerald-700 active:scale-95 text-white font-semibold px-4 py-2.5 rounded-xl border border-emerald-700 shadow transition text-xs sm:text-sm"
+                className="flex-1 lg:flex-initial inline-flex items-center justify-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-100 font-medium px-4 py-2.5 rounded-xl border border-slate-700 shadow-2xs transition-all text-xs sm:text-sm"
               >
-                <SendHorizontal className="w-4 h-4" />
+                <SendHorizontal className="w-4 h-4 text-slate-300" />
                 <span>+ Remittance</span>
               </button>
               <Link
                 href="/statement"
-                className="flex-1 md:flex-initial inline-flex items-center justify-center gap-1.5 bg-white text-emerald-950 hover:bg-emerald-50 active:scale-95 font-bold px-4 py-2.5 rounded-xl shadow transition text-xs sm:text-sm"
+                className="flex-1 lg:flex-initial inline-flex items-center justify-center gap-1.5 bg-white text-slate-900 hover:bg-slate-100 font-semibold px-4 py-2.5 rounded-xl shadow-sm transition-all text-xs sm:text-sm"
               >
                 <FileText className="w-4 h-4 text-emerald-800" />
                 <span>1-Click Statement</span>
@@ -143,28 +143,28 @@ export default function DashboardPage() {
           </div>
 
           {/* Key Financial Metrics (Segregated Pools) */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {/* Metric 1: Landlord Net Pool */}
-            <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:border-emerald-500 transition">
+            <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_24px_-4px_rgba(0,0,0,0.08)] transition-all duration-200">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                   Landlord Net Pool
                 </span>
-                <div className="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800 flex items-center justify-center">
                   <TrendingUp className="w-4 h-4" />
                 </div>
               </div>
-              <div className="mt-2 text-2xl font-black text-slate-900 dark:text-slate-100">
+              <div className="mt-2.5 text-2xl font-bold text-slate-900 dark:text-slate-100 tabular-nums">
                 {formatNaira(totalLandlordNet)}
               </div>
               <p className="mt-1 text-[11px] text-slate-500">
-                Gross Rent less 10% Legal Fee &amp; Landlord Repairs
+                Gross Rent less Management Fee &amp; Landlord Repairs
               </p>
-              <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-[11px]">
-                <span className="text-emerald-700 dark:text-emerald-400 font-semibold">Available for Remittance</span>
+              <div className="mt-3.5 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-[11px]">
+                <span className="text-emerald-700 dark:text-emerald-400 font-medium">Available for Remittance</span>
                 <button
                   onClick={() => setIsRecordRemittanceOpen(true)}
-                  className="text-amber-600 hover:underline font-bold flex items-center gap-0.5"
+                  className="text-slate-700 dark:text-slate-300 hover:text-emerald-700 font-semibold flex items-center gap-0.5 transition-colors"
                 >
                   Disburse &rarr;
                 </button>
@@ -172,71 +172,71 @@ export default function DashboardPage() {
             </div>
 
             {/* Metric 2: Service Charge Reserve Pool */}
-            <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:border-sky-500 transition">
+            <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_24px_-4px_rgba(0,0,0,0.08)] transition-all duration-200">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                   Service Charge Reserve
                 </span>
-                <div className="w-8 h-8 rounded-lg bg-sky-100 dark:bg-sky-900/60 text-sky-700 dark:text-sky-300 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-xl bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border border-sky-200/60 dark:border-sky-800 flex items-center justify-center">
                   <Wrench className="w-4 h-4" />
                 </div>
               </div>
-              <div className="mt-2 text-2xl font-black text-sky-700 dark:text-sky-400">
+              <div className="mt-2.5 text-2xl font-bold text-sky-700 dark:text-sky-400 tabular-nums">
                 {formatNaira(totalServiceCharge)}
               </div>
               <p className="mt-1 text-[11px] text-slate-500">
                 Earmarked for Estate Operations (Security, Borehole, Levies)
               </p>
-              <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-[11px]">
-                <span className="text-sky-600 font-semibold">Exempt from 10% Fee</span>
+              <div className="mt-3.5 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-[11px]">
+                <span className="text-sky-600 font-medium">Exempt from Mgt Fee</span>
                 <button
                   onClick={() => setIsLogExpenseOpen(true)}
-                  className="text-sky-600 hover:underline font-bold"
+                  className="text-sky-600 hover:underline font-semibold"
                 >
                   Log Expense &rarr;
                 </button>
               </div>
             </div>
 
-            {/* Metric 3: Lawyer's Retained 10% Legal Fees */}
-            <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:border-amber-500 transition">
+            {/* Metric 3: Retained Management Fees */}
+            <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_24px_-4px_rgba(0,0,0,0.08)] transition-all duration-200">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                  Lawyer Retained Legal Fees
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                  Retained Management Fees
                 </span>
-                <div className="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200/60 dark:border-amber-800 flex items-center justify-center">
                   <Scale className="w-4 h-4" />
                 </div>
               </div>
-              <div className="mt-2 text-2xl font-black text-amber-600 dark:text-amber-400">
+              <div className="mt-2.5 text-2xl font-bold text-amber-600 dark:text-amber-400 tabular-nums">
                 {formatNaira(totalLawyerFees)}
               </div>
               <p className="mt-1 text-[11px] text-slate-500">
-                Statutory Solicitor 10% Management Commission Earned
+                Agreed Management Commission Earned on Rent
               </p>
-              <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-[11px] text-slate-600 dark:text-slate-400">
-                <span>Chambers Fee Ledger</span>
+              <div className="mt-3.5 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-[11px] text-slate-500">
+                <span>Fee Ledger</span>
                 <span className="font-semibold text-emerald-700 dark:text-emerald-400">Verified &amp; Paid</span>
               </div>
             </div>
 
             {/* Metric 4: Verification Queue */}
-            <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:border-violet-500 transition">
+            <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_24px_-4px_rgba(0,0,0,0.08)] transition-all duration-200">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                   Verification Queue
                 </span>
-                <div className="w-8 h-8 rounded-lg bg-violet-100 dark:bg-violet-900/60 text-violet-700 dark:text-violet-300 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-xl bg-violet-50 dark:bg-violet-950/60 text-violet-700 dark:text-violet-300 border border-violet-200/60 dark:border-violet-800 flex items-center justify-center">
                   <ShieldCheck className="w-4 h-4" />
                 </div>
               </div>
-              <div className="mt-2 text-2xl font-black text-violet-700 dark:text-violet-400">
+              <div className="mt-2.5 text-2xl font-bold text-violet-700 dark:text-violet-400 tabular-nums">
                 {pendingVerificationInvoices.length} Pending
               </div>
               <p className="mt-1 text-[11px] text-slate-500">
                 Bank receipts submitted awaiting Manager approval
               </p>
-              <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-[11px]">
+              <div className="mt-3.5 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-[11px]">
                 <span className="text-slate-500">Total Demands: {invoices.length}</span>
                 {pendingVerificationInvoices.length > 0 && (
                   <span className="text-amber-600 font-bold animate-pulse">Action Required</span>

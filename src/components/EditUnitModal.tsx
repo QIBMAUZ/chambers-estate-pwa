@@ -106,24 +106,33 @@ export function EditUnitModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden my-6">
+    <div className="fixed inset-0 z-50 backdrop-blur-sm bg-slate-900/40 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+      <div className="rounded-2xl border border-slate-100 dark:border-slate-800 shadow-2xl bg-white dark:bg-slate-900 max-w-lg w-full p-6 my-6 space-y-5">
         {/* Header */}
-        <div className="bg-emerald-950 px-5 py-4 text-white flex items-center justify-between border-b border-emerald-800">
-          <div className="flex items-center gap-2">
-            <Pencil className="w-4 h-4 text-amber-400" />
-            <h3 className="font-bold text-base">Edit Tenancy Unit</h3>
+        <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/60 dark:border-emerald-800 flex items-center justify-center text-emerald-800 dark:text-emerald-300">
+              <Pencil className="w-4 h-4" />
+            </div>
+            <div>
+              <h3 className="font-bold text-base text-slate-900 dark:text-slate-100">
+                Edit Tenancy Unit
+              </h3>
+              <p className="text-xs text-slate-500">
+                Update occupant profile, financial terms, and lease dates
+              </p>
+            </div>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="text-emerald-300 hover:text-white transition"
+            className="p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-5 sm:p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           {errorMessage && (
             <div className="flex items-center gap-2 p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 rounded-xl text-rose-700 dark:text-rose-300 text-xs">
               <AlertCircle className="w-4 h-4 shrink-0" />
@@ -133,51 +142,51 @@ export function EditUnitModal({
 
           {/* 1. Unit Designation / Flat Name */}
           <div>
-            <label className="block text-xs font-semibold mb-1">
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
               Unit Designation / Flat Name <span className="text-rose-500">*</span>
             </label>
             <div className="relative">
-              <Home className="w-4 h-4 text-slate-400 absolute left-3 top-2.5 pointer-events-none" />
+              <Home className="w-4 h-4 text-slate-400 absolute left-3.5 top-3 pointer-events-none" />
               <input
                 type="text"
                 required
                 value={unitName}
                 onChange={(e) => setUnitName(e.target.value)}
                 placeholder="e.g. Flat 4 (3-Bedroom) or Wing B"
-                className="w-full text-xs sm:text-sm bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg py-2.5 pl-9 pr-3"
+                className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 focus:outline-none text-sm py-2.5 pl-10 pr-3.5 transition-all"
               />
             </div>
           </div>
 
           {/* 2 & 3. Tenant Full Name & Phone Number */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div>
-              <label className="block text-xs font-semibold mb-1">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                 Tenant Full Name
               </label>
               <div className="relative">
-                <UserCheck className="w-4 h-4 text-slate-400 absolute left-3 top-2.5 pointer-events-none" />
+                <UserCheck className="w-4 h-4 text-slate-400 absolute left-3.5 top-3 pointer-events-none" />
                 <input
                   type="text"
                   value={tenantName}
                   onChange={(e) => setTenantName(e.target.value)}
-                  placeholder="e.g. Chief Adeleke / Leave empty if vacant"
-                  className="w-full text-xs sm:text-sm bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg py-2.5 pl-9 pr-3"
+                  placeholder="Leave empty if vacant"
+                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 focus:outline-none text-sm py-2.5 pl-10 pr-3.5 transition-all"
                 />
               </div>
             </div>
             <div>
-              <label className="block text-xs font-semibold mb-1">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                 Tenant Phone Number
               </label>
               <div className="relative">
-                <Phone className="w-4 h-4 text-slate-400 absolute left-3 top-2.5 pointer-events-none" />
+                <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-3 pointer-events-none" />
                 <input
                   type="tel"
                   value={tenantPhone}
                   onChange={(e) => setTenantPhone(e.target.value)}
                   placeholder="+234 800 000 0000"
-                  className="w-full text-xs sm:text-sm bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg py-2.5 pl-9 pr-3"
+                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 focus:outline-none text-sm py-2.5 pl-10 pr-3.5 transition-all"
                 />
               </div>
             </div>
@@ -185,20 +194,20 @@ export function EditUnitModal({
 
           {/* 4. Tenant Email Address */}
           <div>
-            <label className="block text-xs font-semibold mb-1">
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
               Tenant Email Address{' '}
-              <span className="text-[11px] font-normal text-emerald-600 dark:text-emerald-400">
+              <span className="text-[11px] font-normal text-slate-400">
                 (Used for automated Zoho email reminders)
               </span>
             </label>
             <div className="relative">
-              <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-2.5 pointer-events-none" />
+              <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3 pointer-events-none" />
               <input
                 type="email"
                 value={tenantEmail}
                 onChange={(e) => setTenantEmail(e.target.value)}
                 placeholder="tenant@example.com"
-                className="w-full text-xs sm:text-sm bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg py-2.5 pl-9 pr-3"
+                className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 focus:outline-none text-sm py-2.5 pl-10 pr-3.5 transition-all"
               />
             </div>
           </div>
@@ -206,7 +215,7 @@ export function EditUnitModal({
           {/* 5, 6, 7. Financial Amounts */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="block text-[11px] font-semibold mb-1">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                 Annual Rent (₦) <span className="text-rose-500">*</span>
               </label>
               <input
@@ -215,23 +224,23 @@ export function EditUnitModal({
                 min="0"
                 value={annualRent}
                 onChange={(e) => setAnnualRent(Number(e.target.value))}
-                className="w-full text-xs font-bold bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-2"
+                className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 focus:outline-none text-sm font-semibold tabular-nums py-2.5 px-3 transition-all"
               />
             </div>
             <div>
-              <label className="block text-[11px] font-semibold mb-1">
-                Estate Service Charge (₦)
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                Service Charge (₦)
               </label>
               <input
                 type="number"
                 min="0"
                 value={serviceCharge}
                 onChange={(e) => setServiceCharge(Number(e.target.value))}
-                className="w-full text-xs font-bold bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-2"
+                className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 focus:outline-none text-sm font-semibold tabular-nums py-2.5 px-3 transition-all"
               />
             </div>
             <div>
-              <label className="block text-[11px] font-semibold mb-1">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                 Caution Fee (₦)
               </label>
               <input
@@ -239,63 +248,63 @@ export function EditUnitModal({
                 min="0"
                 value={cautionFee}
                 onChange={(e) => setCautionFee(Number(e.target.value))}
-                className="w-full text-xs font-bold bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-2"
+                className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 focus:outline-none text-sm font-semibold tabular-nums py-2.5 px-3 transition-all"
               />
             </div>
           </div>
 
           {/* 8 & 9. Lease Start & End Dates */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div>
-              <label className="block text-[11px] font-semibold mb-1">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                 Lease Start Date <span className="text-rose-500">*</span>
               </label>
               <div className="relative">
-                <Calendar className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5 pointer-events-none" />
+                <Calendar className="w-4 h-4 text-slate-400 absolute left-3.5 top-3 pointer-events-none" />
                 <input
                   type="date"
                   required
                   value={leaseStartDate}
                   onChange={(e) => setLeaseStartDate(e.target.value)}
-                  className="w-full text-xs bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg py-2 pl-8 pr-2"
+                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 focus:outline-none text-sm py-2.5 pl-10 pr-3 transition-all"
                 />
               </div>
             </div>
             <div>
-              <label className="block text-[11px] font-semibold mb-1">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                 Lease End Date <span className="text-rose-500">*</span>
               </label>
               <div className="relative">
-                <Calendar className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5 pointer-events-none" />
+                <Calendar className="w-4 h-4 text-slate-400 absolute left-3.5 top-3 pointer-events-none" />
                 <input
                   type="date"
                   required
                   value={leaseEndDate}
                   onChange={(e) => setLeaseEndDate(e.target.value)}
-                  className="w-full text-xs bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg py-2 pl-8 pr-2"
+                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 focus:outline-none text-sm py-2.5 pl-10 pr-3 transition-all"
                 />
               </div>
             </div>
           </div>
 
           {/* Actions */}
-          <div className="pt-2 flex justify-end gap-2">
+          <div className="pt-3 flex justify-end gap-2.5 border-t border-slate-100 dark:border-slate-800">
             <button
               type="button"
               disabled={isSubmitting}
               onClick={onClose}
-              className="px-4 py-2 rounded-lg bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-xs font-semibold disabled:opacity-50 transition"
+              className="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-medium rounded-xl px-4 py-2.5 text-sm transition-all disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-emerald-700 hover:bg-emerald-600 active:scale-95 disabled:opacity-60 text-white text-xs font-bold shadow transition"
+              className="inline-flex items-center gap-1.5 bg-emerald-800 hover:bg-emerald-900 text-white font-medium rounded-xl px-5 py-2.5 text-sm shadow-sm transition-all disabled:opacity-60"
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-300" />
+                  <Loader2 className="w-4 h-4 animate-spin text-emerald-200" />
                   <span>Updating Unit...</span>
                 </>
               ) : (

@@ -9,11 +9,8 @@ import {
   Receipt,
   Wrench,
   FileText,
-  Scale,
   RefreshCw,
   Database,
-  ExternalLink,
-  ShieldCheck,
   Settings,
   LogOut,
 } from 'lucide-react';
@@ -82,52 +79,66 @@ export function Navigation({ selectedPropertyId, onPropertyChange }: NavigationP
     }
   };
 
+  const firmInitials =
+    mounted && profile?.firm_name
+      ? profile.firm_name
+          .split(/\s+/)
+          .filter(Boolean)
+          .slice(0, 2)
+          .map((w) => w[0]?.toUpperCase())
+          .join('')
+      : 'EM';
+
   return (
-    <header className="sticky top-0 z-30 bg-emerald-950 text-white shadow-md border-b border-emerald-800">
+    <header className="sticky top-0 z-30 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/80 shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
       {/* Top Header Row */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 sm:h-18">
-          {/* Brand Logo & Legal Title */}
+        <div className="flex items-center justify-between h-16">
+          {/* Brand Logo & Refined Initials Badge */}
           <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center text-emerald-950 shadow-md group-hover:scale-105 transition transform overflow-hidden p-1">
+            <div className="w-10 h-10 rounded-xl bg-emerald-900 text-white flex items-center justify-center shadow-sm ring-1 ring-emerald-950/10 group-hover:scale-105 transition-all duration-200 overflow-hidden p-1">
               {mounted && profile?.letterhead_logo_url ? (
                 <img
                   src={profile.letterhead_logo_url}
                   alt={profile.firm_name}
-                  className="w-full h-full object-contain"
+                  className="w-full h-full object-contain bg-white rounded-lg p-0.5"
                 />
               ) : (
-                <Building2 className="w-6 h-6 stroke-[2.2]" />
+                <span className="text-xs font-extrabold tracking-wider text-emerald-100">
+                  {firmInitials}
+                </span>
               )}
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-extrabold text-lg sm:text-xl tracking-tight text-white">
-                  ESTATE<span className="text-amber-400">MANAGEMENT</span>
+                <span className="font-bold text-base sm:text-lg tracking-tight text-slate-900 dark:text-white">
+                  Estate<span className="text-emerald-700 dark:text-emerald-400">Management</span>
                 </span>
-                <span className="hidden md:inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-800 text-emerald-200 border border-emerald-700">
-                  PROPERTY PORTAL
+                <span className="hidden md:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 border border-emerald-200/70 dark:border-emerald-800">
+                  Property Portal
                 </span>
               </div>
-              <p className="text-[11px] text-emerald-300 font-medium hidden sm:block truncate max-w-sm">
-                {mounted && profile?.firm_name ? profile.firm_name : 'Estate Management'} • Property Ledgers &amp; Accounts
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium hidden sm:block truncate max-w-sm">
+                {mounted && profile?.firm_name ? profile.firm_name : 'Estate Management'} • Portfolio &amp; Trust Accounts
               </p>
             </div>
           </Link>
 
           {/* Right Action Controls */}
-          <div className="flex items-center gap-2 sm:gap-4">
+          <div className="flex items-center gap-2 sm:gap-3">
             {/* Property Selector */}
             {onPropertyChange && (
               <div className="flex items-center gap-1.5">
-                <Building2 className="w-4 h-4 text-emerald-400 hidden sm:block" />
+                <Building2 className="w-4 h-4 text-slate-400 hidden sm:block" />
                 <select
                   value={selectedPropertyId || ''}
                   onChange={(e) => onPropertyChange(e.target.value)}
                   suppressHydrationWarning
-                  className="bg-emerald-900 border border-emerald-700 text-emerald-100 text-xs sm:text-sm rounded-lg px-2.5 py-1.5 focus:ring-2 focus:ring-amber-500 focus:outline-none max-w-[160px] sm:max-w-[220px]"
+                  className="bg-slate-50 dark:bg-slate-800 border border-slate-200/90 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs sm:text-sm font-medium rounded-xl px-3 py-1.5 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 focus:outline-none max-w-[160px] sm:max-w-[220px] transition-all"
                 >
-                  <option value="" suppressHydrationWarning>All Managed Properties</option>
+                  <option value="" suppressHydrationWarning>
+                    All Managed Properties
+                  </option>
                   {(mounted ? properties : INITIAL_PROPERTIES).map((p) => (
                     <option key={p.id} value={p.id} suppressHydrationWarning>
                       {p.title}
@@ -145,11 +156,12 @@ export function Navigation({ selectedPropertyId, onPropertyChange }: NavigationP
                   : 'Operating in Local Storage Reactive Mode'
               }
               suppressHydrationWarning
-              className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-900/80 border border-emerald-700 text-emerald-300"
+              className="hidden lg:flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-medium bg-slate-100/80 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 text-slate-600 dark:text-slate-300"
             >
-              <Database className="w-3 h-3 text-amber-400" />
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+              <Database className="w-3 h-3 text-emerald-700 dark:text-emerald-400" />
               <span suppressHydrationWarning>
-                {mounted ? (isSupabaseConfigured ? 'Supabase Live' : 'PWA Local Vault') : 'Supabase Live'}
+                {mounted ? (isSupabaseConfigured ? 'Supabase Live' : 'Local Vault') : 'Supabase Live'}
               </span>
             </div>
 
@@ -157,9 +169,9 @@ export function Navigation({ selectedPropertyId, onPropertyChange }: NavigationP
             <button
               onClick={handleReset}
               title="Clear local application cache and refresh"
-              className="p-1.5 text-emerald-300 hover:text-white hover:bg-emerald-800 rounded-lg text-xs flex items-center gap-1 transition"
+              className="px-2.5 py-1.5 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100/80 dark:hover:bg-slate-800 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-all"
             >
-              <RefreshCw className="w-3.5 h-3.5" />
+              <RefreshCw className="w-3.5 h-3.5 text-slate-400" />
               <span className="hidden sm:inline">Clear Cache</span>
             </button>
 
@@ -167,7 +179,7 @@ export function Navigation({ selectedPropertyId, onPropertyChange }: NavigationP
             <button
               onClick={handleSignOut}
               title="Sign out of management portal"
-              className="p-1.5 text-rose-300 hover:text-white hover:bg-rose-900/60 rounded-lg text-xs flex items-center gap-1 transition"
+              className="px-2.5 py-1.5 text-rose-600 dark:text-rose-400 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-all"
             >
               <LogOut className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Sign Out</span>
@@ -177,9 +189,9 @@ export function Navigation({ selectedPropertyId, onPropertyChange }: NavigationP
       </div>
 
       {/* Desktop Navigation Links */}
-      <nav className="hidden md:block bg-emerald-900/90 border-t border-emerald-800/80">
+      <nav className="hidden md:block border-t border-slate-100 dark:border-slate-800/80 bg-white/60 dark:bg-slate-900/60">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex space-x-1 py-1">
+          <div className="flex items-center gap-1.5 py-2">
             {navLinks.map((link) => {
               const Icon = link.icon;
               const isActive = pathname === link.href;
@@ -188,13 +200,18 @@ export function Navigation({ selectedPropertyId, onPropertyChange }: NavigationP
                   key={link.href}
                   href={link.href}
                   className={cn(
-                    'flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition',
+                    'flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all',
                     isActive
-                      ? 'bg-emerald-800 text-amber-300 shadow-sm border border-emerald-700'
-                      : 'text-emerald-200 hover:bg-emerald-800/50 hover:text-white'
+                      ? 'bg-emerald-900 text-white shadow-sm'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/70 dark:hover:bg-slate-800/70'
                   )}
                 >
-                  <Icon className={cn('w-4 h-4', isActive ? 'text-amber-400' : 'text-emerald-400')} />
+                  <Icon
+                    className={cn(
+                      'w-4 h-4',
+                      isActive ? 'text-emerald-200' : 'text-slate-400 dark:text-slate-500'
+                    )}
+                  />
                   <span>{link.label}</span>
                 </Link>
               );
@@ -204,7 +221,7 @@ export function Navigation({ selectedPropertyId, onPropertyChange }: NavigationP
       </nav>
 
       {/* Mobile Bottom Navigation Bar (Fixed for PWA mobile experience) */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-emerald-950 border-t border-emerald-800 py-1.5 px-2 shadow-2xl">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200/80 dark:border-slate-800 py-1.5 px-2 shadow-lg">
         <div className="flex items-center justify-around">
           {navLinks.map((link) => {
             const Icon = link.icon;
@@ -214,11 +231,18 @@ export function Navigation({ selectedPropertyId, onPropertyChange }: NavigationP
                 key={link.href}
                 href={link.href}
                 className={cn(
-                  'flex flex-col items-center justify-center py-1 px-2 rounded-lg transition min-w-[58px]',
-                  isActive ? 'text-amber-400 font-bold' : 'text-emerald-300/80 hover:text-white'
+                  'flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition-all min-w-[58px]',
+                  isActive
+                    ? 'bg-emerald-900 text-white font-semibold shadow-2xs'
+                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                 )}
               >
-                <Icon className={cn('w-5 h-5 mb-0.5', isActive ? 'text-amber-400' : 'text-emerald-300')} />
+                <Icon
+                  className={cn(
+                    'w-4 h-4 mb-0.5',
+                    isActive ? 'text-emerald-200' : 'text-slate-400'
+                  )}
+                />
                 <span className="text-[10px] tracking-tight">{link.label}</span>
               </Link>
             );
