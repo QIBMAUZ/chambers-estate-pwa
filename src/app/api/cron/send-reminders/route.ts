@@ -51,8 +51,7 @@ async function handleRemindersCron(request: NextRequest) {
   });
 
   try {
-    // 3. Query Invoices with status IN ('DRAFT', 'SENT', 'PENDING', 'AWAITING_VERIFICATION')
-    // Attempt joining units and profiles:manager_id
+    // 3. Query Unpaid Invoices (status in ['pending', 'overdue'] or non-paid enum values)
     let invoices: any[] = [];
     const { data, error } = await supabase
       .from('invoices')
@@ -65,13 +64,14 @@ async function handleRemindersCron(request: NextRequest) {
         property:properties(*),
         profile:profiles!manager_id(*)
       `)
-      .in('status', ['DRAFT', 'SENT', 'PENDING', 'AWAITING_VERIFICATION']);
+      .in('status', ['pending', 'overdue']);
 
     if (!error && data) {
       invoices = data;
     } else {
-      // Fallback query if profiles!manager_id relation cache is not directly defined
-      const fallback = await supabase
+      // Fallback query without profile join and supporting both lowercase ('pending', 'overdue')
+      // and uppercase ('DRAFT', 'SENT', 'AWAITING_VERIFICATION', 'OVERDUE') invoice_status enums
+      let fallback = await supabase
         .from('invoices')
         .select(`
           *,
@@ -81,13 +81,29 @@ async function handleRemindersCron(request: NextRequest) {
           ),
           property:properties(*)
         `)
-        .in('status', ['DRAFT', 'SENT', 'PENDING', 'AWAITING_VERIFICATION']);
+        .in('status', ['pending', 'overdue']);
+
+      if (fallback.error && fallback.error.message?.includes('invalid input value for enum')) {
+        fallback = await supabase
+          .from('invoices')
+          .select(`
+            *,
+            unit:units(
+              *,
+              property:properties(*)
+            ),
+            property:properties(*)
+          `)
+          .in('status', ['DRAFT', 'SENT', 'AWAITING_VERIFICATION', 'OVERDUE']);
+      }
 
       if (fallback.error) {
         return NextResponse.json({ error: fallback.error.message }, { status: 500 });
       }
 
-      invoices = fallback.data || [];
+      invoices = (fallback.data || []).filter(
+        (inv: any) => String(inv.status || '').toLowerCase() !== 'paid'
+      );
 
       // Fetch corresponding manager profiles
       const managerIds = Array.from(
