@@ -1,7 +1,7 @@
 {
-  "name": "Estate Management | Property & Tenancy Portal",
-  "short_name": "Estate Management",
-  "description": "Commercial Property & Tenancy Management System",
+  "name": "Chambers & Estate | Legal Practice & Property Escrow Management PWA",
+  "short_name": "Chambers & Estate",
+  "description": "Integrated Legal Practice, Solicitor Fee Notes & Property Escrow Management PWA.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#064e3b",

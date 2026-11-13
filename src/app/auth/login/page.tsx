@@ -67,11 +67,11 @@ function LoginFormContent() {
     <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-10 shadow-2xl space-y-6">
       <div className="border-b border-slate-800 pb-4">
         <h2 className="text-lg font-bold text-white flex items-center gap-2">
-          <Building2 className="w-5 h-5 text-emerald-400" />
-          Manager Sign In
+          <Scale className="w-5 h-5 text-amber-400" />
+          Chambers &amp; Estate Portal Sign In
         </h2>
         <p className="text-xs text-slate-400 mt-1">
-          Access your property ledgers, maintenance approvals, and automated fee records.
+          Access your client legal matters, solicitor fee notes, property escrow ledgers, and staff audit trails.
         </p>
       </div>
 
@@ -85,7 +85,7 @@ function LoginFormContent() {
       <form onSubmit={handleLogin} className="space-y-4 text-xs">
         <div>
           <label className="block text-slate-400 font-semibold mb-1">
-            Email Address
+            Official Chambers Email Address
           </label>
           <div className="relative">
             <Mail className="w-4 h-4 text-slate-500 absolute left-3 top-3.5 pointer-events-none" />
@@ -94,7 +94,7 @@ function LoginFormContent() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="manager@example.com"
+              placeholder="chambers@adebayolaw.ng"
               className="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 pl-10 pr-4 text-slate-200 focus:ring-2 focus:ring-emerald-500"
             />
           </div>
@@ -129,11 +129,11 @@ function LoginFormContent() {
             {isLoading ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin text-amber-300" />
-                <span>Verifying Credentials...</span>
+                <span>Verifying Chambers Credentials...</span>
               </>
             ) : (
               <>
-                <span>Sign In to Manager Portal</span>
+                <span>Sign In to Chambers Portal</span>
                 <ArrowRight className="w-4 h-4 text-amber-300" />
               </>
             )}
@@ -143,12 +143,12 @@ function LoginFormContent() {
 
       <div className="pt-4 border-t border-slate-800 text-center text-xs text-slate-400 space-y-2">
         <div>
-          <span>New property manager or firm? </span>
+          <span>New law firm or chambers? </span>
           <Link
             href="/auth/register"
             className="text-amber-400 font-bold hover:underline"
           >
-            Create an Account
+            Register Law Firm Chambers Account
           </Link>
         </div>
         <div>
@@ -169,13 +169,13 @@ export default function LoginPage() {
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-center py-10 px-4 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center space-y-2">
         <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-700 text-emerald-950 shadow-xl mb-1">
-          <Building2 className="w-8 h-8 stroke-[2.2]" />
+          <Scale className="w-8 h-8 stroke-[2.2]" />
         </div>
         <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white uppercase">
-          ESTATE<span className="text-amber-400">MANAGEMENT</span>
+          CHAMBERS <span className="text-amber-400">&amp; ESTATE</span>
         </h1>
         <p className="text-xs text-slate-400">
-          Commercial Property &amp; Tenancy Management System
+          Integrated Legal Practice, Solicitor Fee Notes &amp; Property Escrow Management PWA.
         </p>
       </div>
 

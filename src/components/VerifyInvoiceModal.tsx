@@ -5,11 +5,7 @@ import {
   X,
   CheckCircle2,
   ShieldAlert,
-  ArrowRight,
-  ExternalLink,
   Eye,
-  Building,
-  Calendar,
   CreditCard,
   Sparkles,
 } from 'lucide-react';
@@ -33,27 +29,34 @@ export function VerifyInvoiceModal({
 }: VerifyInvoiceModalProps) {
   const [verifying, setVerifying] = useState(false);
   const [showFullImage, setShowFullImage] = useState(false);
-  const [verifierName, setVerifierName] = useState('Barr. T. A. Babatunde (Principal Solicitor)');
+  const [verifierName, setVerifierName] = useState(EstateStore.getAuditActor().created_by_name);
 
   if (!isOpen || !invoice) return null;
 
+  const isFirstYear = invoice.tenancy_type === 'FIRST_YEAR';
   const rentDue = Number(invoice.rent_due);
   const serviceChargeDue = Number(invoice.service_charge_due || 0);
   const cautionDue = Number(invoice.caution_due || 0);
-  const feeRate = typeof invoice.management_fee_rate === 'number'
+  const legalFeeDue = Number(invoice.legal_fee_due || 0);
+  const feeRate = isFirstYear
+    ? 0
+    : typeof invoice.management_fee_rate === 'number'
     ? invoice.management_fee_rate
     : typeof invoice.property?.landlord?.default_mgt_rate === 'number'
     ? invoice.property.landlord.default_mgt_rate
     : 10.0;
-  const mgtFee = rentDue * (feeRate / 100);
+  const mgtFee = isFirstYear ? 0 : rentDue * (feeRate / 100);
   const landlordNet = rentDue - mgtFee;
+  const balanceDue =
+    typeof invoice.balance_due === 'number'
+      ? invoice.balance_due
+      : Math.max(0, Number(invoice.total_amount_payable) - Number(invoice.amount_paid || 0));
 
   const handleVerify = async () => {
     setVerifying(true);
     try {
       await EstateStore.verifyTenantInvoice(invoice.id, verifierName);
 
-      // Trigger celebratory confetti for successfully verified legal payment
       try {
         confetti({
           particleCount: 100,
@@ -87,10 +90,12 @@ export function VerifyInvoiceModal({
             </div>
             <div>
               <h3 className="font-bold text-base sm:text-lg">
-                Proof of Payment Verification & Accounting Split
+                Proof of Payment Verification &amp; Accounting Split
               </h3>
               <p className="text-xs text-emerald-300">
-                Execute automated 10% legal fee deduction & multi-pool fund separation
+                {isFirstYear
+                  ? 'First-Year Intake: 10% Tenant Legal Fee to Firm + 100% Rent to Landlord'
+                  : 'Renewal Tenancy: Automated 10% Management Fee Deduction & Fund Separation'}
               </p>
             </div>
           </div>
@@ -112,21 +117,21 @@ export function VerifyInvoiceModal({
               </span>
             </div>
             <div>
-              <span className="text-slate-500 dark:text-slate-400 block font-medium">Unit & Property</span>
+              <span className="text-slate-500 dark:text-slate-400 block font-medium">Unit &amp; Property</span>
               <span className="font-bold text-slate-800 dark:text-slate-100">
                 {invoice.unit?.unit_name || 'Unit'} • {invoice.property?.title || 'Estate'}
               </span>
             </div>
             <div>
-              <span className="text-slate-500 dark:text-slate-400 block font-medium">Lease Tenancy Cycle</span>
-              <span className="font-semibold text-slate-700 dark:text-slate-300">
-                {formatDate(invoice.period_start)} → {formatDate(invoice.period_end)}
+              <span className="text-slate-500 dark:text-slate-400 block font-medium">Tenancy Classification</span>
+              <span className="font-bold text-amber-600 dark:text-amber-400">
+                {isFirstYear ? 'FIRST_YEAR (+10% Tenant Legal Fee)' : 'RENEWAL (10% Landlord Mgt Fee)'}
               </span>
             </div>
             <div>
-              <span className="text-slate-500 dark:text-slate-400 block font-medium">Total Invoiced Amount</span>
+              <span className="text-slate-500 dark:text-slate-400 block font-medium">Balance Being Verified</span>
               <span className="font-extrabold text-emerald-700 dark:text-emerald-400 text-sm">
-                {formatNaira(invoice.total_amount_payable)}
+                {formatNaira(balanceDue)}
               </span>
             </div>
           </div>
@@ -181,7 +186,9 @@ export function VerifyInvoiceModal({
                 <Sparkles className="w-3.5 h-3.5" />
                 Automated Domain Ledger Execution
               </span>
-              <span className="text-[11px] text-emerald-300">Agreed {feeRate}% Legal Fee</span>
+              <span className="text-[11px] text-emerald-300">
+                {isFirstYear ? 'First-Year Rules Applied' : `Renewal ${feeRate}% Mgt Fee`}
+              </span>
             </div>
 
             <div className="space-y-2 text-xs">
@@ -190,29 +197,50 @@ export function VerifyInvoiceModal({
                 <span className="font-bold text-white">+{formatNaira(rentDue)}</span>
               </div>
 
-              <div className="flex items-center justify-between text-amber-300 font-semibold bg-emerald-900/60 p-2 rounded-lg border border-emerald-800">
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-amber-400"></span>
-                  <span>2. Lawyer {feeRate}% Management Fee:</span>
-                </div>
-                <span className="font-mono text-sm">+{formatNaira(mgtFee)}</span>
-              </div>
-
-              <div className="flex items-center justify-between text-emerald-200">
-                <span>3. Net Inflow to Landlord Rent Pool:</span>
-                <span className="font-bold text-emerald-300">{formatNaira(landlordNet)}</span>
-              </div>
+              {isFirstYear ? (
+                <>
+                  <div className="flex items-center justify-between text-amber-300 font-semibold bg-emerald-900/60 p-2 rounded-lg border border-emerald-800">
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-amber-400"></span>
+                      <span>2. Tenant 10% Legal Agreement Fee (Credited 100% to Firm):</span>
+                    </div>
+                    <span className="font-mono text-sm">+{formatNaira(legalFeeDue)}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-emerald-200">
+                    <span>3. Landlord Management Fee Deduction (First-Year Exempt):</span>
+                    <span className="font-bold text-emerald-300">₦0.00 (0%)</span>
+                  </div>
+                  <div className="flex items-center justify-between text-emerald-200">
+                    <span>4. Net Inflow to Landlord Rent Pool:</span>
+                    <span className="font-bold text-emerald-300">{formatNaira(rentDue)}</span>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="flex items-center justify-between text-amber-300 font-semibold bg-emerald-900/60 p-2 rounded-lg border border-emerald-800">
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-amber-400"></span>
+                      <span>2. Lawyer {feeRate}% Renewal Management Fee (Deducted from Rent):</span>
+                    </div>
+                    <span className="font-mono text-sm">+{formatNaira(mgtFee)}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-emerald-200">
+                    <span>3. Net Inflow to Landlord Rent Pool:</span>
+                    <span className="font-bold text-emerald-300">{formatNaira(landlordNet)}</span>
+                  </div>
+                </>
+              )}
 
               {serviceChargeDue > 0 && (
                 <div className="flex items-center justify-between text-emerald-200">
-                  <span>4. Estate Service Charge (Reserve Pool):</span>
+                  <span>• Estate Service Charge (Reserve Pool):</span>
                   <span className="font-bold text-sky-300">+{formatNaira(serviceChargeDue)}</span>
                 </div>
               )}
 
               {cautionDue > 0 && (
                 <div className="flex items-center justify-between text-emerald-200">
-                  <span>5. Caution Deposit (Escrow Fund):</span>
+                  <span>• Caution Deposit (Escrow Fund):</span>
                   <span className="font-bold text-violet-300">+{formatNaira(cautionDue)}</span>
                 </div>
               )}
@@ -260,7 +288,7 @@ export function VerifyInvoiceModal({
               ) : (
                 <>
                   <CheckCircle2 className="w-4 h-4 text-amber-300" />
-                  <span>Verify & Execute 10% Accounting Split</span>
+                  <span>Verify &amp; Issue Official Receipt (RCT-...)</span>
                 </>
               )}
             </button>

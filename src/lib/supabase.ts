@@ -67,7 +67,14 @@ export async function getCurrentAuthUser() {
  */
 export async function uploadReceiptToStorage(
   fileOrDataUrl: string,
-  folder: 'proofs' | 'artisans' | 'logos' = 'proofs'
+  folder:
+    | 'proofs'
+    | 'artisans'
+    | 'logos'
+    | 'kyc-documents/passports'
+    | 'kyc-documents/ids'
+    | 'kyc-documents/signatures'
+    | 'kyc-documents/agreements' = 'proofs'
 ): Promise<string> {
   if (!fileOrDataUrl) return '';
 

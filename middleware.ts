@@ -6,10 +6,14 @@ export function middleware(request: NextRequest) {
 
   // 1. Strictly Public Routes (Must bypass auth check completely)
   // - Tenant payment links (/pay/*)
+  // - Pre-entry tenancy application links (/apply/*)
+  // - Tenant e-signature links (/sign/*)
   // - Authentication pages (/auth/*)
   // - PWA assets, icons, manifest, service worker & Next.js static bundles
   if (
     pathname.startsWith('/pay') ||
+    pathname.startsWith('/apply') ||
+    pathname.startsWith('/sign') ||
     pathname.startsWith('/auth') ||
     pathname.startsWith('/_next') ||
     pathname.startsWith('/api') ||

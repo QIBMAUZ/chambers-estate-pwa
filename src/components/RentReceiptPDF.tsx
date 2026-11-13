@@ -9,7 +9,7 @@ import {
   Image,
   StyleSheet,
 } from '@react-pdf/renderer';
-import { Invoice, ChamberProfile } from '@/types/database';
+import { Invoice, ChamberProfile, TranchePayment } from '@/types/database';
 import { formatNaira, formatDate } from '@/lib/utils';
 
 const styles = StyleSheet.create({
@@ -148,6 +148,20 @@ const styles = StyleSheet.create({
     fontFamily: 'Helvetica-Bold',
     color: '#064e3b',
   },
+  trancheSummaryBox: {
+    marginTop: 8,
+    padding: 8,
+    backgroundColor: '#fffbeb',
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: '#fde68a',
+  },
+  trancheRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 2,
+    fontSize: 8.5,
+  },
   tenancyNote: {
     marginTop: 12,
     padding: 8,
@@ -186,9 +200,10 @@ const styles = StyleSheet.create({
 export interface RentReceiptPDFProps {
   invoice: Invoice;
   profile?: ChamberProfile;
+  tranche?: TranchePayment;
 }
 
-export function RentReceiptDocument({ invoice, profile }: RentReceiptPDFProps) {
+export function RentReceiptDocument({ invoice, profile, tranche }: RentReceiptPDFProps) {
   const firmName = profile?.firm_name || 'BARR. T. A. BABATUNDE & ASSOCIATES';
   const solicitorName = profile?.solicitor_name || 'Barr. T. A. Babatunde, LL.B, B.L';
   const enrollmentNo = profile?.enrollment_no || 'SCN/2004/0981';
@@ -200,19 +215,27 @@ export function RentReceiptDocument({ invoice, profile }: RentReceiptPDFProps) {
   const rentDue = Number(invoice.rent_due) || 0;
   const sCharge = Number(invoice.service_charge_due) || 0;
   const caution = Number(invoice.caution_due) || 0;
-  const totalPaid = Number(invoice.total_amount_payable) || 0;
+  const legalFeeDue = Number(invoice.legal_fee_due) || 0;
+  const totalDemand = Number(invoice.total_amount_payable) || 0;
+
+  const receiptNumber =
+    tranche?.receipt_number ||
+    `RCT-${new Date().getFullYear()}-${invoice.id.slice(0, 6).toUpperCase()}`;
+
+  const cumulativePaid =
+    typeof invoice.amount_paid === 'number' ? invoice.amount_paid : totalDemand;
+  const balanceDue =
+    typeof invoice.balance_due === 'number'
+      ? invoice.balance_due
+      : Math.max(0, totalDemand - cumulativePaid);
+  const currentTranchePaid = tranche ? Number(tranche.amount) : cumulativePaid;
 
   return (
-    <Document title={`Rent_Receipt_${invoice.tenant_name.replace(/\s+/g, '_')}`}>
+    <Document title={`Rent_Receipt_${receiptNumber}_${invoice.tenant_name.replace(/\s+/g, '_')}`}>
       <Page size="A4" style={styles.page}>
         {/* Chambers Letterhead */}
         <View style={styles.headerContainer}>
-          {logoUrl ? (
-            <Image
-              src={logoUrl}
-              style={styles.logo}
-            />
-          ) : null}
+          {logoUrl ? <Image src={logoUrl} style={styles.logo} /> : null}
           <Text style={styles.chambersTitle}>{firmName}</Text>
           <Text style={styles.chambersSub}>
             LEGAL PRACTITIONERS &amp; REAL ESTATE SOLICITORS OF THE SUPREME COURT OF NIGERIA
@@ -224,9 +247,13 @@ export function RentReceiptDocument({ invoice, profile }: RentReceiptPDFProps) {
 
         {/* Receipt Title Banner */}
         <View style={styles.receiptTitleBox}>
-          <Text style={styles.receiptTitle}>STATUTORY RENT RECEIPT &amp; SETTLEMENT CERTIFICATE</Text>
+          <Text style={styles.receiptTitle}>
+            {balanceDue > 0
+              ? 'OFFICIAL TRANCHE / PART-PAYMENT RENT RECEIPT'
+              : 'STATUTORY RENT RECEIPT & SETTLEMENT CERTIFICATE'}
+          </Text>
           <Text style={styles.receiptSubtitle}>
-            Issued pursuant to Section 5, Lagos State Tenancy Law 2011 • Official Solicitor Receipt
+            Issued pursuant to Section 5, Lagos State Tenancy Law 2011 • Receipt #{receiptNumber}
           </Text>
         </View>
 
@@ -242,11 +269,17 @@ export function RentReceiptDocument({ invoice, profile }: RentReceiptPDFProps) {
             <Text style={{ fontSize: 7.5, color: '#64748b' }}>
               {invoice.property?.address}, {invoice.property?.state || 'Lagos'}
             </Text>
+            <Text style={[styles.metaLabel, { marginTop: 4 }]}>Tenancy Type:</Text>
+            <Text style={styles.metaValue}>
+              {invoice.tenancy_type === 'FIRST_YEAR'
+                ? 'First-Year Intake (+10% Legal Agreement Fee)'
+                : 'Renewal Tenancy'}
+            </Text>
           </View>
           <View style={styles.metaCol}>
             <Text style={styles.metaLabel}>Receipt Serial Reference:</Text>
-            <Text style={[styles.metaValue, { fontFamily: 'Helvetica-Bold' }]}>
-              RCP-{invoice.id.slice(0, 8).toUpperCase()}
+            <Text style={[styles.metaValue, { fontFamily: 'Helvetica-Bold', color: '#064e3b' }]}>
+              {receiptNumber}
             </Text>
             <Text style={[styles.metaLabel, { marginTop: 4 }]}>Tenancy Period Covered:</Text>
             <Text style={styles.metaValue}>
@@ -254,13 +287,23 @@ export function RentReceiptDocument({ invoice, profile }: RentReceiptPDFProps) {
             </Text>
             <Text style={[styles.metaLabel, { marginTop: 4 }]}>Payment Verification Reference:</Text>
             <Text style={{ fontSize: 7.5, color: '#064e3b', fontFamily: 'Helvetica-Bold' }}>
-              {invoice.bank_session_id || 'Direct Electronic Funds Transfer (NIP)'}
+              {tranche?.bank_reference ||
+                invoice.bank_session_id ||
+                'Direct Electronic Funds Transfer (NIP)'}
             </Text>
+            {(tranche?.created_by_name || invoice.created_by_name) && (
+              <>
+                <Text style={[styles.metaLabel, { marginTop: 4 }]}>Processed &amp; Audited By:</Text>
+                <Text style={{ fontSize: 7.5, color: '#334155', fontFamily: 'Helvetica-Bold' }}>
+                  {tranche?.created_by_name || invoice.created_by_name}
+                </Text>
+              </>
+            )}
           </View>
         </View>
 
         {/* Itemized Consideration Table */}
-        <Text style={styles.sectionTitle}>Consideration &amp; Statutory Payment Breakdown</Text>
+        <Text style={styles.sectionTitle}>Full Demand Breakdown &amp; Statutory Allocation</Text>
         <View style={styles.table}>
           <View style={styles.tableHeader}>
             <Text style={styles.colDesc}>Payment Component</Text>
@@ -273,6 +316,16 @@ export function RentReceiptDocument({ invoice, profile }: RentReceiptPDFProps) {
             <Text style={styles.colCategory}>Gross Rent Pool</Text>
             <Text style={styles.colAmount}>{formatNaira(rentDue).replace('₦', '')}</Text>
           </View>
+
+          {legalFeeDue > 0 && (
+            <View style={styles.tableRow}>
+              <Text style={styles.colDesc}>
+                10% First-Year Legal &amp; Tenancy Agreement Fee
+              </Text>
+              <Text style={styles.colCategory}>Chambers Legal Fee</Text>
+              <Text style={styles.colAmount}>{formatNaira(legalFeeDue).replace('₦', '')}</Text>
+            </View>
+          )}
 
           {sCharge > 0 && (
             <View style={styles.tableRow}>
@@ -293,14 +346,66 @@ export function RentReceiptDocument({ invoice, profile }: RentReceiptPDFProps) {
 
         {/* Total Box */}
         <View style={styles.totalBox}>
-          <Text>TOTAL CLEARED FUNDS RECEIVED:</Text>
-          <Text>{formatNaira(totalPaid).replace('₦', 'NGN ')}</Text>
+          <Text>TOTAL INVOICED DEMAND:</Text>
+          <Text>{formatNaira(totalDemand).replace('₦', 'NGN ')}</Text>
+        </View>
+
+        {/* Tranche / Ledger Status Box */}
+        <View style={styles.trancheSummaryBox}>
+          <View style={styles.trancheRow}>
+            <Text style={{ fontFamily: 'Helvetica-Bold', color: '#064e3b' }}>
+              THIS TRANCHE / RECEIPT AMOUNT PAID ({receiptNumber}):
+            </Text>
+            <Text style={{ fontFamily: 'Helvetica-Bold', color: '#064e3b' }}>
+              {formatNaira(currentTranchePaid).replace('₦', 'NGN ')}
+            </Text>
+          </View>
+          <View style={styles.trancheRow}>
+            <Text style={{ color: '#334155' }}>Cumulative Paid to Date:</Text>
+            <Text style={{ fontFamily: 'Helvetica-Bold', color: '#334155' }}>
+              {formatNaira(cumulativePaid).replace('₦', 'NGN ')}
+            </Text>
+          </View>
+          <View style={styles.trancheRow}>
+            <Text
+              style={{
+                fontFamily: 'Helvetica-Bold',
+                color: balanceDue > 0 ? '#b45309' : '#065f46',
+              }}
+            >
+              OUTSTANDING BALANCE DUE:
+            </Text>
+            <Text
+              style={{
+                fontFamily: 'Helvetica-Bold',
+                color: balanceDue > 0 ? '#b45309' : '#065f46',
+              }}
+            >
+              {balanceDue > 0
+                ? formatNaira(balanceDue).replace('₦', 'NGN ')
+                : 'NGN 0.00 (FULLY SETTLED)'}
+            </Text>
+          </View>
+          {balanceDue > 0 && (tranche?.promise_to_pay_date || invoice.promise_to_pay_date) && (
+            <View style={styles.trancheRow}>
+              <Text style={{ color: '#92400e', fontSize: 8 }}>
+                Agreed Promise-to-Pay Date for Balance:
+              </Text>
+              <Text style={{ fontFamily: 'Helvetica-Bold', color: '#92400e', fontSize: 8 }}>
+                {formatDate(tranche?.promise_to_pay_date || invoice.promise_to_pay_date)}
+              </Text>
+            </View>
+          )}
         </View>
 
         {/* Tenancy Legal Certificate Note */}
         <View style={styles.tenancyNote}>
           <Text style={styles.tenancyNoteText}>
-            THIS IS TO CERTIFY that the sum stated above has been received into the designated client account for the benefit of the Landlord. The statutory 10% legal fee and relevant operational allocations have been audited in compliance with the Lagos State Tenancy Law 2011. The tenant is entitled to quiet possession and peaceable enjoyment of the demised premises for the term specified herein.
+            THIS IS TO CERTIFY that the sum of {formatNaira(currentTranchePaid).replace('₦', 'NGN ')}{' '}
+            has been received under Official Receipt {receiptNumber} into the designated client account.{' '}
+            {balanceDue > 0
+              ? `An outstanding balance of ${formatNaira(balanceDue).replace('₦', 'NGN ')} remains payable on or before the agreed promise-to-pay date.`
+              : 'All statutory rent, legal fees, and operational allocations have been settled in full compliance with the Lagos State Tenancy Law 2011.'}
           </Text>
         </View>
 
@@ -315,7 +420,13 @@ export function RentReceiptDocument({ invoice, profile }: RentReceiptPDFProps) {
             <Text style={styles.signName}>Chambers Stamp &amp; Attestation</Text>
             <Text style={styles.signTitle}>Supreme Court Enrolment #{enrollmentNo}</Text>
             <Text style={styles.signTitle}>
-              Date Verified: {formatDate(invoice.verified_at ? invoice.verified_at.slice(0, 10) : new Date().toISOString().slice(0, 10))}
+              Date Issued:{' '}
+              {formatDate(
+                tranche?.payment_date ||
+                  (invoice.verified_at
+                    ? invoice.verified_at.slice(0, 10)
+                    : new Date().toISOString().slice(0, 10))
+              )}
             </Text>
           </View>
         </View>

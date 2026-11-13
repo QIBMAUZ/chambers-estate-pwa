@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { X, Wrench, ShieldCheck, AlertCircle, Camera, Check } from 'lucide-react';
+import { X, Wrench, ShieldCheck, AlertCircle, Check, FileBadge } from 'lucide-react';
 import { EstateStore } from '@/lib/store';
 import { formatNaira } from '@/lib/utils';
 import { FundingSource } from '@/types/database';
@@ -30,12 +30,14 @@ export function LogExpenseModal({
   const [fundingSource, setFundingSource] = useState<FundingSource>('SERVICE_CHARGE_POOL');
   const [description, setDescription] = useState('');
   const [artisanName, setArtisanName] = useState('');
+  const [artisanPhone, setArtisanPhone] = useState('');
   const [amount, setAmount] = useState<number>(45000);
   const [receiptUrl, setReceiptUrl] = useState<string | null>(null);
+  const [workPhotoUrl, setWorkPhotoUrl] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
   if (!isOpen) return null;
 
-  // Get current balances for property
   const balances = EstateStore.getPropertyBalances(selectedPropertyId)[0] || {
     landlord_net_balance: 0,
     service_charge_balance: 0,
@@ -47,7 +49,7 @@ export function LogExpenseModal({
       ? balances.service_charge_balance
       : fundingSource === 'LANDLORD_RENT_POOL'
       ? balances.landlord_net_balance
-      : 500000; // Caution escrow pool
+      : 500000;
 
   const isLowBalance = amount > poolCurrentBalance;
 
@@ -67,23 +69,30 @@ export function LogExpenseModal({
       if (!confirmProceed) return;
     }
 
-    await EstateStore.logMaintenanceExpense({
-      property_id: selectedPropertyId,
-      unit_id: selectedUnitId || null,
-      amount,
-      description,
-      funding_source: fundingSource,
-      artisan_name: artisanName,
-      receipt_url: receiptUrl,
-    });
+    setSaving(true);
+    try {
+      await EstateStore.logMaintenanceExpense({
+        property_id: selectedPropertyId,
+        unit_id: selectedUnitId || null,
+        amount,
+        description,
+        funding_source: fundingSource,
+        artisan_name: artisanName,
+        artisan_phone: artisanPhone,
+        receipt_url: receiptUrl,
+        work_photo_url: workPhotoUrl,
+      });
 
-    if (onSaved) onSaved();
-    onClose();
+      if (onSaved) onSaved();
+      onClose();
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
     <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden my-6">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-xl w-full shadow-2xl overflow-hidden my-6">
         {/* Header */}
         <div className="bg-emerald-950 px-5 py-4 text-white flex items-center justify-between border-b border-emerald-800">
           <div className="flex items-center gap-2.5">
@@ -92,10 +101,10 @@ export function LogExpenseModal({
             </div>
             <div>
               <h3 className="font-bold text-base sm:text-lg">
-                Log Artisan & Maintenance Expense
+                Log Artisan Expense &amp; Generate Stamped Voucher (VCH-...)
               </h3>
               <p className="text-xs text-emerald-300">
-                Multi-pool fund separation & artisan invoice tracking
+                No paper receipt required — generates an internal Stamped Digital Payment Voucher
               </p>
             </div>
           </div>
@@ -107,7 +116,18 @@ export function LogExpenseModal({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-5 sm:p-6 space-y-4 max-h-[80vh] overflow-y-auto">
+        <form onSubmit={handleSubmit} className="p-5 sm:p-6 space-y-4 max-h-[82vh] overflow-y-auto">
+          {/* No-Receipt Digital Voucher Callout */}
+          <div className="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 p-3 rounded-xl flex items-start gap-2.5 text-xs text-emerald-900 dark:text-emerald-200">
+            <FileBadge className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+            <div>
+              <span className="font-bold block">Automated Internal Stamped Payment Voucher (VCH-...)</span>
+              <span className="text-[11px] text-emerald-700 dark:text-emerald-300">
+                Informal artisans (plumbers, electricians, welders) rarely issue printed receipts. Submitting this form automatically stamps an immutable Chambers Digital Payment Voucher (`VCH-...`).
+              </span>
+            </div>
+          </div>
+
           {/* Funding Source Selector */}
           <div>
             <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
@@ -216,35 +236,49 @@ export function LogExpenseModal({
           {/* Description & Artisan Details */}
           <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              Job Description / Purpose of Expense
+              Job Description / Purpose of Expense *
             </label>
             <input
               type="text"
               required
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="e.g. Borehole pump overhaul, Security guard uniforms, Roof repairs"
+              placeholder="e.g. Borehole submersible pump overhaul, Roof flashing repairs"
               className="w-full text-xs sm:text-sm bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-2.5"
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                Artisan / Vendor Name & Phone
+                Artisan / Technician Name *
               </label>
               <input
                 type="text"
+                required
                 value={artisanName}
                 onChange={(e) => setArtisanName(e.target.value)}
-                placeholder="e.g. Engr. Musa Plumber (+234 803 000 1122)"
+                placeholder="e.g. Engr. Musa Plumber"
                 className="w-full text-xs sm:text-sm bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-2.5"
               />
             </div>
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                Cost Incurred (₦)
+                Artisan Phone Number
+              </label>
+              <input
+                type="text"
+                value={artisanPhone}
+                onChange={(e) => setArtisanPhone(e.target.value)}
+                placeholder="+234 803 000 1122"
+                className="w-full text-xs sm:text-sm bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-2.5"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                Cost Incurred (₦) *
               </label>
               <input
                 type="number"
@@ -258,22 +292,36 @@ export function LogExpenseModal({
             </div>
           </div>
 
-          {/* Receipt Snap / Upload */}
-          <CameraCapture
-            onCapture={(img) => setReceiptUrl(img)}
-            initialImage={receiptUrl}
-            label="Snap Artisan Receipt / Work Invoice"
-            helperText="Snap physical artisan receipt using your mobile camera or upload image"
-          />
+          {/* Photo Proof of Completed Repair Work (Optional) & External Receipt (Optional) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <CameraCapture
+              onCapture={(img) => setWorkPhotoUrl(img)}
+              initialImage={workPhotoUrl}
+              label="Photo Proof of Completed Work (Optional)"
+              helperText="Snap the repaired pump, pipe, or roof for Supabase Storage archive"
+            />
+
+            <CameraCapture
+              onCapture={(img) => setReceiptUrl(img)}
+              initialImage={receiptUrl}
+              label="External Paper Receipt (Optional)"
+              helperText="Leave blank if artisan did not provide a paper receipt"
+            />
+          </div>
 
           {/* Submit */}
           <div className="pt-2">
             <button
               type="submit"
+              disabled={saving}
               className="w-full bg-emerald-700 hover:bg-emerald-600 active:scale-[0.99] text-white font-bold py-3 px-4 rounded-xl shadow-md transition text-xs sm:text-sm flex items-center justify-center gap-2"
             >
-              <Wrench className="w-4 h-4 text-amber-300" />
-              <span>Record Expense to Ledger</span>
+              <ShieldCheck className="w-4 h-4 text-amber-300" />
+              <span>
+                {saving
+                  ? 'Stamping Voucher...'
+                  : 'Stamp Digital Voucher (VCH-...) & Record Expense'}
+              </span>
             </button>
           </div>
         </form>

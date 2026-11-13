@@ -8,14 +8,14 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'Estate Management | Property & Tenancy Portal',
+  title: 'Chambers & Estate | Legal Practice & Property Escrow Management PWA',
   description:
-    'Commercial Property & Tenancy Management System. Automates rent invoicing, proof-of-payment verification, management fee calculations, maintenance tracking, and landlord statement generation.',
+    'Integrated Legal Practice, Solicitor Fee Notes & Property Escrow Management PWA. Automates client legal matters, solicitor fee notes, rent invoicing, artisan vouchers, and landlord escrow statements.',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'Estate Management',
+    title: 'Chambers & Estate',
   },
   icons: {
     icon: '/icon-192.png',

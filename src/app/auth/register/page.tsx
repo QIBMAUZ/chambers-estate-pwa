@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 import { supabase, setAuthCookie } from '@/lib/supabase';
 import { EstateStore } from '@/lib/store';
-import { ChamberProfile } from '@/types/database';
+import { ChamberProfile, UserRole } from '@/types/database';
 
 const NIGERIAN_BANKS = [
   'Zenith Bank PLC',
@@ -42,6 +42,7 @@ export default function RegisterPage() {
   const router = useRouter();
 
   // Form state
+  const [role, setRole] = useState<UserRole>('HEAD_OF_CHAMBERS');
   const [solicitorName, setSolicitorName] = useState('');
   const [firmName, setFirmName] = useState('');
   const [enrollmentNo, setEnrollmentNo] = useState('');
@@ -120,6 +121,7 @@ export default function RegisterPage() {
         account_number: accountNumber.trim(),
         account_name: accountName.trim() || firmName.trim(),
         letterhead_logo_url: null,
+        role,
         updated_at: new Date().toISOString(),
       };
 
@@ -162,13 +164,13 @@ export default function RegisterPage() {
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-center py-10 px-4 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-2xl text-center space-y-2">
         <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-700 text-emerald-950 shadow-xl mb-1">
-          <Building2 className="w-8 h-8 stroke-[2.2]" />
+          <Scale className="w-8 h-8 stroke-[2.2]" />
         </div>
         <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white uppercase">
-          ESTATE<span className="text-amber-400">MANAGEMENT</span>
+          CHAMBERS <span className="text-amber-400">&amp; ESTATE</span>
         </h1>
-        <p className="text-xs sm:text-sm text-slate-400 max-w-md mx-auto">
-          Commercial Property &amp; Tenancy Management Progressive Web Application.
+        <p className="text-xs sm:text-sm text-slate-400 max-w-lg mx-auto">
+          Integrated Legal Practice, Solicitor Fee Notes &amp; Property Escrow Management PWA.
         </p>
       </div>
 
@@ -176,11 +178,11 @@ export default function RegisterPage() {
         <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-10 shadow-2xl space-y-6">
           <div className="border-b border-slate-800 pb-4">
             <h2 className="text-lg font-bold text-white flex items-center gap-2">
-              <Building2 className="w-5 h-5 text-emerald-400" />
-              Register Property Management Account
+              <Scale className="w-5 h-5 text-amber-400" />
+              Register Law Firm Chambers Account
             </h2>
             <p className="text-xs text-slate-400 mt-1">
-              Set up your company profile, collection account, and fee calculation rules.
+              Configure your chambers letterhead, client escrow &amp; firm fee accounts, and staff access roles.
             </p>
           </div>
 
@@ -196,34 +198,65 @@ export default function RegisterPage() {
             <div className="space-y-4">
               <h3 className="font-extrabold uppercase text-[11px] tracking-wider text-emerald-400 flex items-center gap-1.5">
                 <User className="w-4 h-4" />
-                1. Manager &amp; Company Identification
+                1. Chambers Role &amp; Identification
               </h3>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setRole('HEAD_OF_CHAMBERS')}
+                  className={`p-3 rounded-xl border text-left transition ${
+                    role === 'HEAD_OF_CHAMBERS'
+                      ? 'bg-emerald-950 border-amber-500 text-white'
+                      : 'bg-slate-950 border-slate-800 text-slate-400'
+                  }`}
+                >
+                  <div className="font-bold text-amber-300">Head of Chambers (Full Admin)</div>
+                  <div className="text-[11px] text-slate-400 mt-0.5">
+                    Full access to properties, fee rates, bank accounts &amp; history.
+                  </div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRole('ACCOUNTANT_CLERK')}
+                  className={`p-3 rounded-xl border text-left transition ${
+                    role === 'ACCOUNTANT_CLERK'
+                      ? 'bg-emerald-950 border-amber-500 text-white'
+                      : 'bg-slate-950 border-slate-800 text-slate-400'
+                  }`}
+                >
+                  <div className="font-bold text-emerald-300">Accountant / Clerk (Restricted)</div>
+                  <div className="text-[11px] text-slate-400 mt-0.5">
+                    Can onboard tenants, raise invoices/fee notes &amp; log inflows/vouchers.
+                  </div>
+                </button>
+              </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-slate-400 font-semibold mb-1">
-                    Full Name / Lead Manager <span className="text-rose-500">*</span>
+                    Full Name / Principal Counsel <span className="text-rose-500">*</span>
                   </label>
                   <input
                     type="text"
                     required
                     value={solicitorName}
                     onChange={(e) => setSolicitorName(e.target.value)}
-                    placeholder="e.g. T. A. Babatunde"
+                    placeholder="e.g. Barr. A. I. Adebayo, LL.B, B.L"
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-200 focus:ring-2 focus:ring-emerald-500 font-medium"
                   />
                 </div>
 
                 <div>
                   <label className="block text-slate-400 font-semibold mb-1">
-                    Company / Agency / Firm Name <span className="text-rose-500">*</span>
+                    Chambers / Law Firm Name <span className="text-rose-500">*</span>
                   </label>
                   <input
                     type="text"
                     required
                     value={firmName}
                     onChange={(e) => setFirmName(e.target.value)}
-                    placeholder="e.g. BABATUNDE PROPERTY CONSULTANTS"
+                    placeholder="E.G. A. I. ADEBAYO & CO. (LEGAL PRACTITIONERS)"
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-200 focus:ring-2 focus:ring-emerald-500 uppercase font-bold"
                   />
                 </div>
@@ -232,20 +265,20 @@ export default function RegisterPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-slate-400 font-semibold mb-1">
-                    Professional Accreditation / Enrolment No (Optional)
+                    NBA / Supreme Court Enrolment No (Optional)
                   </label>
                   <input
                     type="text"
                     value={enrollmentNo}
                     onChange={(e) => setEnrollmentNo(e.target.value)}
-                    placeholder="e.g. SCN/2004/0981 or REG-2026-09"
+                    placeholder="e.g. SCN/2008/1420"
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-200 focus:ring-2 focus:ring-emerald-500 font-mono"
                   />
                 </div>
 
                 <div>
                   <label className="block text-slate-400 font-semibold mb-1">
-                    Official Contact Phone / WhatsApp <span className="text-rose-500">*</span>
+                    Official Chambers Phone / WhatsApp <span className="text-rose-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -260,7 +293,7 @@ export default function RegisterPage() {
 
               <div>
                 <label className="block text-slate-400 font-semibold mb-1">
-                  Office Physical Address &amp; State <span className="text-rose-500">*</span>
+                  Chambers Office Physical Address &amp; State <span className="text-rose-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -277,10 +310,10 @@ export default function RegisterPage() {
             <div className="space-y-4 pt-4 border-t border-slate-800">
               <h3 className="font-extrabold uppercase text-[11px] tracking-wider text-amber-400 flex items-center gap-1.5">
                 <CreditCard className="w-4 h-4" />
-                2. Dedicated Rent Collection Bank Details
+                2. Client Escrow &amp; Rent Collection Bank Details
               </h3>
               <p className="text-[11px] text-slate-500">
-                These banking instructions are presented to tenants on their magic payment portal links.
+                These banking instructions are embedded on tenant Demand Notices, Solicitor Fee Notes, and magic payment links.
               </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -325,7 +358,7 @@ export default function RegisterPage() {
                     required
                     value={accountName}
                     onChange={(e) => setAccountName(e.target.value)}
-                    placeholder="e.g. Babatunde Properties Client Account"
+                    placeholder="e.g. A. I. Adebayo & Co. Client Escrow Account"
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-200 focus:ring-2 focus:ring-emerald-500 font-semibold"
                   />
                 </div>
@@ -336,20 +369,20 @@ export default function RegisterPage() {
             <div className="space-y-4 pt-4 border-t border-slate-800">
               <h3 className="font-extrabold uppercase text-[11px] tracking-wider text-emerald-400 flex items-center gap-1.5">
                 <Lock className="w-4 h-4" />
-                3. Manager Login Credentials
+                3. Chambers Portal Login Credentials
               </h3>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="sm:col-span-1">
                   <label className="block text-slate-400 font-semibold mb-1">
-                    Email Address <span className="text-rose-500">*</span>
+                    Official Email Address <span className="text-rose-500">*</span>
                   </label>
                   <input
                     type="email"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="manager@example.com"
+                    placeholder="chambers@adebayolaw.ng"
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-200 focus:ring-2 focus:ring-emerald-500"
                   />
                 </div>
@@ -393,11 +426,11 @@ export default function RegisterPage() {
                 {isLoading ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin text-amber-300" />
-                    <span>Creating Manager Account...</span>
+                    <span>Creating Law Firm Chambers Account...</span>
                   </>
                 ) : (
                   <>
-                    <span>Create Account</span>
+                    <span>Create Law Firm Chambers Account</span>
                     <ArrowRight className="w-4 h-4 text-amber-300" />
                   </>
                 )}
@@ -406,12 +439,12 @@ export default function RegisterPage() {
           </form>
 
           <div className="pt-4 border-t border-slate-800 text-center text-xs text-slate-400">
-            <span>Already have an account? </span>
+            <span>Already registered with Chambers &amp; Estate? </span>
             <Link
               href="/auth/login"
               className="text-amber-400 font-bold hover:underline inline-flex items-center gap-1"
             >
-              Sign In to Manager Portal
+              Sign In to Chambers Portal
             </Link>
           </div>
         </div>

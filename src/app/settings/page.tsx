@@ -302,6 +302,51 @@ export default function SettingsPage() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/* Left Column: Logo Upload & Branding (7 cols) */}
             <div className="lg:col-span-7 space-y-6">
+              {/* Multi-User RBAC Role & Access Control Card */}
+              <div className="bg-emerald-950 text-white rounded-2xl border border-emerald-800 p-5 shadow-md space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-emerald-800/80 pb-3">
+                  <div>
+                    <span className="text-[10px] uppercase tracking-wider font-extrabold text-amber-400 block">
+                      Multi-User Role-Based Access Control (RBAC)
+                    </span>
+                    <h2 className="text-sm sm:text-base font-black text-white">
+                      Active Session Role:{' '}
+                      {profile.role === 'ACCOUNTANT_CLERK'
+                        ? 'ACCOUNTANT / CLERK (Restricted)'
+                        : 'HEAD OF CHAMBERS (Full Admin)'}
+                    </h2>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => EstateStore.switchActiveRole('HEAD_OF_CHAMBERS')}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
+                        profile.role !== 'ACCOUNTANT_CLERK'
+                          ? 'bg-amber-500 text-emerald-950 shadow'
+                          : 'bg-emerald-900/60 text-emerald-200 border border-emerald-700'
+                      }`}
+                    >
+                      Head of Chambers
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => EstateStore.switchActiveRole('ACCOUNTANT_CLERK')}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
+                        profile.role === 'ACCOUNTANT_CLERK'
+                          ? 'bg-amber-500 text-emerald-950 shadow'
+                          : 'bg-emerald-900/60 text-emerald-200 border border-emerald-700'
+                      }`}
+                    >
+                      Accountant / Clerk
+                    </button>
+                  </div>
+                </div>
+                <p className="text-[11px] text-emerald-200 leading-relaxed">
+                  <strong>Head of Chambers:</strong> Full administrative control over properties, landlord bank details, fee rates, and historical deletion.{' '}
+                  <strong>Accountant / Clerk:</strong> Can onboard tenants, raise invoices/fee notes, and log inflows, vouchers, and expenses, but cannot delete history, edit stamped vouchers, or alter bank/fee settings.
+                </p>
+              </div>
+
               {/* Firm Letterhead & Branding Card */}
               <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm space-y-5">
                 <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
@@ -517,10 +562,17 @@ export default function SettingsPage() {
 
                   {/* Dedicated Chambers Rent Collection Account */}
                   <div className="pt-3 border-t border-slate-200 dark:border-slate-800 space-y-3">
-                    <h4 className="font-extrabold uppercase text-[10px] tracking-wider text-amber-700 dark:text-amber-400 flex items-center gap-1.5">
-                      <CreditCard className="w-3.5 h-3.5" />
-                      Chambers Dedicated Collection Escrow Account
-                    </h4>
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-extrabold uppercase text-[10px] tracking-wider text-amber-700 dark:text-amber-400 flex items-center gap-1.5">
+                        <CreditCard className="w-3.5 h-3.5" />
+                        Chambers Dedicated Collection Escrow Account
+                      </h4>
+                      {profile.role === 'ACCOUNTANT_CLERK' && (
+                        <span className="text-[10px] font-bold text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-950 px-2 py-0.5 rounded">
+                          Locked for Accountant / Clerk
+                        </span>
+                      )}
+                    </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       <div>
@@ -529,8 +581,9 @@ export default function SettingsPage() {
                         </label>
                         <select
                           value={bankName}
+                          disabled={profile.role === 'ACCOUNTANT_CLERK'}
                           onChange={(e) => setBankName(e.target.value)}
-                          className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 font-medium"
+                          className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 font-medium disabled:opacity-60"
                         >
                           {NIGERIAN_BANKS.map((b) => (
                             <option key={b} value={b}>
@@ -548,10 +601,11 @@ export default function SettingsPage() {
                           type="text"
                           required
                           maxLength={10}
+                          disabled={profile.role === 'ACCOUNTANT_CLERK'}
                           value={accountNumber}
                           onChange={(e) => setAccountNumber(e.target.value.replace(/\D/g, ''))}
                           placeholder="1012345678"
-                          className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 font-mono font-bold"
+                          className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 font-mono font-bold disabled:opacity-60"
                         />
                       </div>
 
@@ -562,10 +616,11 @@ export default function SettingsPage() {
                         <input
                           type="text"
                           required
+                          disabled={profile.role === 'ACCOUNTANT_CLERK'}
                           value={accountName}
                           onChange={(e) => setAccountName(e.target.value)}
                           placeholder="e.g. Babatunde & Co Client Escrow"
-                          className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 font-semibold"
+                          className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 font-semibold disabled:opacity-60"
                         />
                       </div>
                     </div>

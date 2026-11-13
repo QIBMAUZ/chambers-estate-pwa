@@ -68,6 +68,7 @@ export default function DashboardPage() {
   const totalLandlordNet = balances.reduce((sum, b) => sum + b.landlord_net_balance, 0);
   const totalServiceCharge = balances.reduce((sum, b) => sum + b.service_charge_balance, 0);
   const totalLawyerFees = balances.reduce((sum, b) => sum + b.total_lawyer_fee_retained, 0);
+  const firmProfit = EstateStore.getFirmProfitSummary();
 
   const pendingVerificationInvoices = invoices.filter(
     (i) => i.status === 'AWAITING_VERIFICATION'
@@ -76,7 +77,8 @@ export default function DashboardPage() {
   const filteredTransactions = transactions.filter((t) => {
     if (txFilter === 'ALL') return true;
     if (txFilter === 'RENT_INFLOW') return t.tx_type === 'RENT_INFLOW';
-    if (txFilter === 'MANAGEMENT_FEE') return t.tx_type === 'MANAGEMENT_FEE';
+    if (txFilter === 'MANAGEMENT_FEE')
+      return t.tx_type === 'MANAGEMENT_FEE' || t.tx_type === 'TENANT_LEGAL_FEE';
     if (txFilter === 'SERVICE_CHARGE') return t.tx_type === 'SERVICE_CHARGE';
     if (txFilter === 'MAINTENANCE_EXPENSE') return t.tx_type === 'MAINTENANCE_EXPENSE';
     if (txFilter === 'OWNER_REMITTANCE') return t.tx_type === 'OWNER_REMITTANCE';
@@ -198,25 +200,30 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Metric 3: Retained Management Fees */}
+            {/* Metric 3: Chambers Net Profit & Retained Legal Fees */}
             <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_24px_-4px_rgba(0,0,0,0.08)] transition-all duration-200">
               <div className="flex items-center justify-between">
                 <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                  Retained Management Fees
+                  Real-Time Firm Net Profit
                 </span>
                 <div className="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200/60 dark:border-amber-800 flex items-center justify-center">
                   <Scale className="w-4 h-4" />
                 </div>
               </div>
               <div className="mt-2.5 text-2xl font-bold text-amber-600 dark:text-amber-400 tabular-nums">
-                {formatNaira(totalLawyerFees)}
+                {mounted ? formatNaira(firmProfit.netFirmProfit) : formatNaira(totalLawyerFees)}
               </div>
               <p className="mt-1 text-[11px] text-slate-500">
-                Agreed Management Commission Earned on Rent
+                1st-Yr Legal + Renewal Mgt + Fee Notes less Disbursements
               </p>
               <div className="mt-3.5 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-[11px] text-slate-500">
-                <span>Fee Ledger</span>
-                <span className="font-semibold text-emerald-700 dark:text-emerald-400">Verified &amp; Paid</span>
+                <span>Estate Fees: {formatNaira(totalLawyerFees)}</span>
+                <Link
+                  href="/chambers"
+                  className="font-semibold text-emerald-700 dark:text-emerald-400 hover:underline"
+                >
+                  Chambers Ledger &rarr;
+                </Link>
               </div>
             </div>
 
@@ -451,8 +458,10 @@ export default function DashboardPage() {
                         tx.tx_type === 'CAUTION_DEPOSIT' ||
                         tx.tx_type === 'MANAGEMENT_FEE';
 
-                      const isLegalFee = tx.tx_type === 'MANAGEMENT_FEE';
-                      const isExpense = tx.tx_type === 'MAINTENANCE_EXPENSE';
+                      const isLegalFee =
+                        tx.tx_type === 'MANAGEMENT_FEE' || tx.tx_type === 'TENANT_LEGAL_FEE';
+                      const isExpense =
+                        tx.tx_type === 'MAINTENANCE_EXPENSE' || tx.tx_type === 'CAUTION_REFUND';
                       const isRemittance = tx.tx_type === 'OWNER_REMITTANCE';
 
                       return (
@@ -464,9 +473,13 @@ export default function DashboardPage() {
                             {formatDate(tx.tx_date)}
                           </td>
                           <td className="py-3 px-3 whitespace-nowrap">
-                            {isLegalFee ? (
+                            {tx.tx_type === 'TENANT_LEGAL_FEE' ? (
                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700">
-                                <Scale className="w-3 h-3" /> LEGAL COMMISSION
+                                <Scale className="w-3 h-3" /> 1ST-YR 10% LEGAL FEE
+                              </span>
+                            ) : isLegalFee ? (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700">
+                                <Scale className="w-3 h-3" /> RENEWAL 10% MGT FEE
                               </span>
                             ) : tx.tx_type === 'RENT_INFLOW' ? (
                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300">
@@ -476,9 +489,13 @@ export default function DashboardPage() {
                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-sky-100 dark:bg-sky-950 text-sky-800 dark:text-sky-300 border border-sky-300">
                                 S/CHARGE INFLOW
                               </span>
+                            ) : tx.tx_type === 'CAUTION_REFUND' ? (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-violet-100 dark:bg-violet-950 text-violet-800 dark:text-violet-300 border border-violet-300">
+                                CAUTION REFUND
+                              </span>
                             ) : isExpense ? (
                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 dark:bg-rose-950 text-rose-800 dark:text-rose-300 border border-rose-300">
-                                <ArrowDownRight className="w-3 h-3 text-rose-600" /> ARTISAN REPAIR
+                                <ArrowDownRight className="w-3 h-3 text-rose-600" /> ARTISAN VOUCHER
                               </span>
                             ) : isRemittance ? (
                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-100 dark:bg-indigo-950 text-indigo-800 dark:text-indigo-300 border border-indigo-300">
@@ -497,6 +514,11 @@ export default function DashboardPage() {
                             {tx.reference_note && (
                               <span className="text-[11px] text-slate-500 font-mono block">
                                 {tx.reference_note}
+                              </span>
+                            )}
+                            {tx.created_by_name && (
+                              <span className="text-[10px] text-slate-400 block">
+                                Audited by: {tx.created_by_name}
                               </span>
                             )}
                           </td>

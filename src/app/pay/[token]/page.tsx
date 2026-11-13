@@ -281,6 +281,12 @@ export default function TenantPaymentPortalPage({
               <span>Annual Rent Due:</span>
               <span className="font-bold">{formatNaira(invoice.rent_due)}</span>
             </div>
+            {(invoice.legal_fee_due || 0) > 0 && (
+              <div className="flex justify-between items-center text-amber-400">
+                <span>10% First-Year Legal Agreement Fee:</span>
+                <span className="font-bold">+{formatNaira(invoice.legal_fee_due || 0)}</span>
+              </div>
+            )}
             {invoice.service_charge_due > 0 && (
               <div className="flex justify-between items-center text-sky-400">
                 <span>Estate Service Charge:</span>
@@ -294,9 +300,27 @@ export default function TenantPaymentPortalPage({
               </div>
             )}
             <div className="pt-2 border-t border-slate-800 flex justify-between items-center text-emerald-400 font-black text-sm sm:text-base">
-              <span>TOTAL AMOUNT DUE:</span>
+              <span>TOTAL AMOUNT DEMANDED:</span>
               <span className="font-mono">{formatNaira(invoice.total_amount_payable)}</span>
             </div>
+            {(invoice.amount_paid || 0) > 0 && (
+              <>
+                <div className="flex justify-between items-center text-emerald-300">
+                  <span>Amount Paid to Date:</span>
+                  <span className="font-bold">-{formatNaira(invoice.amount_paid || 0)}</span>
+                </div>
+                <div className="flex justify-between items-center text-amber-300 font-extrabold">
+                  <span>OUTSTANDING BALANCE DUE:</span>
+                  <span className="font-mono">
+                    {formatNaira(
+                      typeof invoice.balance_due === 'number'
+                        ? invoice.balance_due
+                        : Math.max(0, invoice.total_amount_payable - (invoice.amount_paid || 0))
+                    )}
+                  </span>
+                </div>
+              </>
+            )}
             <div className="text-[11px] text-amber-400 text-right">
               Due Date: {formatDate(invoice.due_date)}
             </div>
